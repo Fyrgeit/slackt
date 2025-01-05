@@ -1,3 +1,5 @@
+import data from './slackt.js';
+
 type PersonNew = {
     nameFirst: string | null;
     nameGiven: string | null;
@@ -17,7 +19,7 @@ type Person = PersonNew & {
 
 type Relation = {
     id: number;
-    type: 'marriage' | 'formal' | null;
+    type: string | null;
     people: number[];
     dateStart: string | null;
     dateEnd: string | null;
@@ -31,17 +33,13 @@ type Group = {
     dateEnd: string | null;
 };
 
-type Slackt = {
+export type Slackt = {
     people: Person[];
     relations: Relation[];
     groups: Group[];
 };
 
-let slackt: Slackt = {
-    people: [],
-    relations: [],
-    groups: [],
-};
+let slackt: Slackt = data;
 
 function AddPerson(newPerson: PersonNew) {
     let newId = slackt.people.length;
@@ -138,13 +136,14 @@ function DisplayName(personId: number, type: 'given' | 'identifier' = 'given') {
         } ${p.nameLast}${p.nameLastMaiden ? ` (f. ${p.nameLastMaiden})` : ''}`;
 }
 
-slackt = await Bun.file('slackt.json').json();
+let out = document.getElementById('out');
 
-//Bun.write('slackt.json', JSON.stringify(slackt));
+slackt.people.forEach((p) => {
+    let el = document.createElement('p');
+    el.innerText = DisplayName(p.id, 'identifier') ?? '?';
+    out?.append(el);
+});
 
-console.log(
-    slackt.people.map((p) => DisplayName(p.id, 'identifier')).join('\n')
-);
 console.log(
     'Pappas syskon:',
     FindSiblings(4)
