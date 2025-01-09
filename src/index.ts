@@ -1,22 +1,28 @@
-import data from './slackt.js';
-import { Slackt, DisplayName } from './typesnmethods.js';
+import { Slackt } from './typesnmethods.js';
 
-let slackt: Slackt = data;
+function download() {
+    const blob = new Blob([JSON.stringify(file)], { type: 'application/json' });
+    const el = document.createElement('a');
+    el.setAttribute('href', window.URL.createObjectURL(blob));
+    el.setAttribute('download', 'bruv.json');
+    el.click();
+}
 
-let out = document.getElementById('out');
-
-slackt.people.forEach((p) => {
-    let el = document.createElement('p');
-    el.innerText = DisplayName(slackt, p.id, 'identifier') ?? '?';
-    out?.append(el);
-});
-
-const blob = new Blob(['Hejsan vad trevligt'], { type: 'text/plain' });
-const downloadButton = document.getElementById('download');
-downloadButton?.setAttribute('href', window.URL.createObjectURL(blob));
+window.onbeforeunload = () => true;
 
 let testout = document.getElementById('testout');
-if (!testout) throw new Error('Did not find testuut');
+if (!testout) throw new Error('Did not find testout');
+
+let saveButton = document.getElementById('save');
+if (!saveButton) throw new Error('Did not find saveButton');
+saveButton.onclick = () => download();
+
+let clearButton = document.getElementById('clear');
+if (!clearButton) throw new Error('Did not find clearButton');
+clearButton.onclick = () => {
+    file = null;
+    testout.innerText = '*Ingen fil öppnad*';
+};
 
 let file: Slackt | null = null;
 
@@ -24,13 +30,16 @@ if (!file) {
     testout.innerText = '*Ingen fil öppnad*';
 }
 
-const uploadButton = document.getElementById('upload');
-if (!!uploadButton) {
-    //On upload file
-    uploadButton.onchange = async (e) => {
+const openButton = document.getElementById('open');
+if (!!openButton) {
+    //On open file
+    openButton.onchange = async (e) => {
         if (e.target instanceof HTMLInputElement) {
             const text = await e.target.files?.item(0)?.text();
-            if (!text) return;
+            if (!text) {
+                console.error('äawh');
+                return;
+            }
             try {
                 file = JSON.parse(text);
                 testout.innerText = text;

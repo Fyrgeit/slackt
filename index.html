@@ -10,12 +10,10 @@
     <body>
         <h1>Slackt</h1>
         <h2>Ditt släktforskningsverktyg</h2>
-        <label for="upload">Ladda upp slackt-fil</label>
-        <input type="file" name="upload" id="upload" />
-        <br />
-        <label for="download">Ladda ner slackt-fil</label>
-        <a id="download" download="hej.txt">Ladda ner...</a>
+        <button onclick="document.getElementById('open').click()">Öppna</button>
+        <input type="file" id="open" accept=".json" style="display: none" />
+        <button id="save">Spara</button>
+        <button id="clear">Rensa</button>
         <div id="testout"></div>
-        <!-- <div id="out"></div> -->
     </body>
 </html>
