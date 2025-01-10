@@ -2,19 +2,28 @@
     font-family: 'Segoe UI', sans-serif;
     padding: 0;
     margin: 0;
+    box-sizing: border-box;
 }
 
-#out,
-#testout {
+#output {
+    display: grid;
+    gap: 0.2rem;
+}
+
+#output,
+#output section {
     border: 1px solid black;
+    padding: 0.2rem;
+}
+
+#output section h1 {
+    text-transform: capitalize;
 }
 
 button {
-    display: inline-block;
-    background-color: blue;
+    background-color: #0c8;
     color: white;
     padding: 0.2rem 0.6rem;
-    text-decoration: none;
     border: none;
     font-size: 1rem;
     cursor: pointer;
@@ -22,5 +31,9 @@ button {
 }
 
 button:hover {
-    background-color: black;
+    background-color: #086;
+}
+
+#statusField {
+    font-family: monospace;
 }

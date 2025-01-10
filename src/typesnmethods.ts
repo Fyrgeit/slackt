@@ -129,13 +129,7 @@ export function FindCousins(s: Slackt, personId: number) {
     ];
 }
 
-export function DisplayName(
-    s: Slackt,
-    personId: number,
-    type: 'given' | 'identifier' = 'given'
-) {
-    let p = FindPerson(s, personId);
-
+export function DisplayName(p: Person, type: 'given' | 'identifier' = 'given') {
     if (type === 'given') return p.nameGiven ?? p.nameFirst?.split(' ')[0];
 
     if (type === 'identifier')

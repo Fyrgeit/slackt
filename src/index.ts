@@ -1,51 +1,76 @@
-import { Slackt } from './typesnmethods.js';
+import { Slackt, DisplayName } from './typesnmethods.js';
+
+async function open(e: Event) {
+    if (e.target instanceof HTMLInputElement) {
+        const file = e.target.files?.item(0);
+        const text = await file?.text();
+        if (!file || !text) {
+            console.error('äawh');
+            return;
+        }
+        try {
+            openedFile = JSON.parse(text);
+        } catch (error) {
+            statusField.innerText = 'Fel på filen';
+        }
+
+        if (!openedFile) return;
+
+        statusField.innerText = 'Öppnade ' + file.name;
+
+        openedFile.people.forEach((p) => {
+            peopleSection.insertAdjacentHTML(
+                'beforeend',
+                `<p>${DisplayName(p, 'identifier')}</p>`
+            );
+        });
+
+        openedFile.relations.forEach((r) => {
+            relationsSection.insertAdjacentHTML(
+                'beforeend',
+                `<p>${r.id}: ${r.people}</p>`
+            );
+        });
+    }
+}
 
 function download() {
-    const blob = new Blob([JSON.stringify(file)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify(openedFile)], {
+        type: 'application/json',
+    });
     const el = document.createElement('a');
     el.setAttribute('href', window.URL.createObjectURL(blob));
-    el.setAttribute('download', 'bruv.json');
+    const fileName = 'bruv.json';
+    el.setAttribute('download', fileName);
     el.click();
+    statusField.innerText = 'Downloaded ' + fileName;
 }
 
-window.onbeforeunload = () => true;
-
-let testout = document.getElementById('testout');
-if (!testout) throw new Error('Did not find testout');
-
-let saveButton = document.getElementById('save');
-if (!saveButton) throw new Error('Did not find saveButton');
-saveButton.onclick = () => download();
-
-let clearButton = document.getElementById('clear');
-if (!clearButton) throw new Error('Did not find clearButton');
-clearButton.onclick = () => {
-    file = null;
-    testout.innerText = '*Ingen fil öppnad*';
-};
-
-let file: Slackt | null = null;
-
-if (!file) {
-    testout.innerText = '*Ingen fil öppnad*';
+function clear() {
+    openedFile = null;
+    statusField.innerText = 'Rensade';
 }
 
-const openButton = document.getElementById('open');
-if (!!openButton) {
-    //On open file
-    openButton.onchange = async (e) => {
-        if (e.target instanceof HTMLInputElement) {
-            const text = await e.target.files?.item(0)?.text();
-            if (!text) {
-                console.error('äawh');
-                return;
-            }
-            try {
-                file = JSON.parse(text);
-                testout.innerText = text;
-            } catch (error) {
-                testout.innerText = '*Fel på filen*';
-            }
-        }
-    };
-}
+const openButton = document.getElementById('open')!;
+const saveButton = document.getElementById('save')!;
+const clearButton = document.getElementById('clear')!;
+const statusField = document.getElementById('statusField')!;
+
+openButton.addEventListener('change', async (e) => await open(e));
+saveButton.onclick = download;
+clearButton.onclick = clear;
+
+const output = document.getElementById('output')!;
+
+['people', 'relations', 'groups'].forEach((type) => {
+    const sectionEl = `<section><h1>${type}</h1><main id="${type}" /></section>`;
+    output.insertAdjacentHTML('beforeend', sectionEl);
+});
+
+const peopleSection = document.getElementById('people')!;
+const relationsSection = document.getElementById('relations')!;
+const groupsSection = document.getElementById('groups')!;
+
+let openedFile: Slackt | null = null;
+
+statusField.innerText = 'Ingen fil öppnad';

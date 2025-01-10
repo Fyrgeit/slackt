@@ -10,10 +10,15 @@
     <body>
         <h1>Slackt</h1>
         <h2>Ditt släktforskningsverktyg</h2>
-        <button onclick="document.getElementById('open').click()">Öppna</button>
-        <input type="file" id="open" accept=".json" style="display: none" />
-        <button id="save">Spara</button>
-        <button id="clear">Rensa</button>
-        <div id="testout"></div>
+        <div id="menuButtons">
+            <button onclick="document.getElementById('open').click()">
+                Öppna
+            </button>
+            <input type="file" id="open" accept=".json" style="display: none" />
+            <button id="save">Spara</button>
+            <button id="clear">Rensa</button>
+            <span id="statusField"></span>
+        </div>
+        <div id="output"></div>
     </body>
 </html>
