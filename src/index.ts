@@ -1,4 +1,4 @@
-import { Slackt, DisplayName } from './typesnmethods.js';
+import { Slackt, DisplayName, FindPerson, GetPerson } from './typesnmethods.js';
 
 async function open(e: Event) {
     if (e.target instanceof HTMLInputElement) {
@@ -21,14 +21,25 @@ async function open(e: Event) {
         openedFile.people.forEach((p) => {
             peopleSection.insertAdjacentHTML(
                 'beforeend',
-                `<p>${DisplayName(p, 'identifier')}</p>`
+                `<p>${DisplayName(p, 'long')}</p>`
             );
         });
 
-        openedFile.relations.forEach((r) => {
-            relationsSection.insertAdjacentHTML(
+        openedFile.families.forEach((f) => {
+            let husband = f.husband
+                ? DisplayName(FindPerson(openedFile!, f.husband))
+                : null;
+            let wife = f.wife
+                ? DisplayName(FindPerson(openedFile!, f.wife))
+                : null;
+            let children = f.children.map((c) =>
+                DisplayName(FindPerson(openedFile!, c))
+            );
+            familiesSection.insertAdjacentHTML(
                 'beforeend',
-                `<p>${r.id}: ${r.people}</p>`
+                `<p>${f.id}: ${husband} + ${wife}${
+                    children.length > 0 ? ' = ' + children.join(', ') : ''
+                }</p>`
             );
         });
     }
@@ -62,14 +73,13 @@ clearButton.onclick = clear;
 
 const output = document.getElementById('output')!;
 
-['people', 'relations', 'groups'].forEach((type) => {
-    const sectionEl = `<section><h1>${type}</h1><main id="${type}" /></section>`;
-    output.insertAdjacentHTML('beforeend', sectionEl);
-});
+const sectionEl = `
+    <section><h1>${'Personer'}</h1><main id="${'people'}" /></section>
+    <section><h1>${'Familjer'}</h1><main id="${'families'}" /></section>`;
+output.insertAdjacentHTML('beforeend', sectionEl);
 
 const peopleSection = document.getElementById('people')!;
-const relationsSection = document.getElementById('relations')!;
-const groupsSection = document.getElementById('groups')!;
+const familiesSection = document.getElementById('families')!;
 
 let openedFile: Slackt | null = null;
 
