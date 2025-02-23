@@ -46,6 +46,12 @@ button:hover {
     background-color: #084;
 }
 
-#statusField {
-    font-family: monospace;
+#people>p,
+#families>p {
+    cursor: pointer;
+}
+
+#form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
 }

@@ -1,4 +1,10 @@
-import { Slackt, DisplayName, FindPerson, GetPerson } from './typesnmethods.js';
+import {
+    Slackt,
+    FormatName,
+    FindPerson,
+    Person,
+    FormatFamily,
+} from './typesnmethods.js';
 
 async function open(e: Event) {
     if (e.target instanceof HTMLInputElement) {
@@ -46,33 +52,74 @@ function refresh() {
 
     openedFile.people.forEach((p) => {
         let el = document.createElement('p');
-        el.innerHTML = DisplayName(p, 'long') ?? '?';
+        el.innerHTML = FormatName(p, 'long') ?? '?';
         el.setAttribute('data-id', '' + p.id);
         el.onclick = select;
         peopleSection.append(el);
     });
 
     openedFile.families.forEach((f) => {
-        let husband = f.husband
-            ? DisplayName(FindPerson(openedFile!, f.husband))
-            : null;
-        let wife = f.wife ? DisplayName(FindPerson(openedFile!, f.wife)) : null;
-        let children = f.children.map((c) =>
-            DisplayName(FindPerson(openedFile!, c))
-        );
-        familiesSection.insertAdjacentHTML(
-            'beforeend',
-            `<p>${f.id}: ${husband} + ${wife}${
-                children.length > 0 ? ' = ' + children.join(', ') : ''
-            }</p>`
-        );
+        let el = document.createElement('p');
+        el.innerHTML = FormatFamily(openedFile!, f);
+        familiesSection.append(el);
     });
+}
+
+function refreshInspector() {
+    inspector.innerHTML = '';
+
+    if (selected === null || !openedFile) {
+        inspector.innerHTML = 'Välj person/familj';
+        return;
+    }
+
+    if (selected.type === 'person') {
+        let person = FindPerson(openedFile, selected.id);
+
+        let formEl = document.createElement('form');
+        formEl.id = 'form';
+        formEl.onchange = (e) => {
+            let target = e.target;
+            //uppdatera openedFile
+        };
+
+        let keys: (keyof Person)[] = [
+            'nameFirst',
+            'nameLast',
+            'nameLastMaiden',
+            'dateBirth',
+            'dateDeath',
+        ];
+
+        keys.forEach((key) => {
+            let labelEl = document.createElement('label');
+            labelEl.innerHTML = key;
+            labelEl.setAttribute('for', key);
+
+            let inputEl = document.createElement('input');
+            inputEl.setAttribute('type', 'text');
+            inputEl.setAttribute('name', key);
+            inputEl.value = '' + person[key];
+
+            formEl.append(labelEl);
+            formEl.append(inputEl);
+        });
+
+        inspector.append(formEl);
+    }
 }
 
 function select(e: MouseEvent) {
     let target = e.target as Element;
+    let id = target.attributes.getNamedItem('data-id')?.value;
+    if (id === undefined || openedFile === null) {
+        selected = null;
+        refreshInspector();
+        return;
+    }
 
-    console.log(target.attributes.getNamedItem('data-id')?.value);
+    selected = { type: 'person', id: parseInt(id) };
+    refreshInspector();
 }
 
 const openButton = document.getElementById('open')!;
@@ -85,11 +132,18 @@ clearButton.onclick = clear;
 
 const peopleSection = document.getElementById('people')!;
 const familiesSection = document.getElementById('families')!;
+const inspector = document.getElementById('inspector')!;
 
 let openedFile: Slackt | null = null;
+let selected:
+    | { type: 'person'; id: number }
+    | { type: 'family'; id: number }
+    | null = null;
 
 let fromLS = localStorage.getItem('openedFile');
-if (fromLS && JSON.parse(fromLS)) {
+if (fromLS) {
     openedFile = JSON.parse(fromLS);
-    refresh();
 }
+
+refresh();
+refreshInspector();

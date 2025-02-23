@@ -1,10 +1,10 @@
 export type Person = {
     id: number;
-    nameFirst: string | null;
-    nameLast: string | null;
-    nameLastMaiden: string | null;
-    dateBirth: string | null;
-    dateDeath: string | null;
+    nameFirst: string;
+    nameLast: string;
+    nameLastMaiden: string;
+    dateBirth: string;
+    dateDeath: string;
 };
 
 export type Family = {
@@ -12,8 +12,8 @@ export type Family = {
     husband: number | null;
     wife: number | null;
     children: number[];
-    nameLastOverride: string | null;
-    dateStart: string | null;
+    nameLastOverride: string;
+    dateStart: string;
 };
 
 export type Slackt = {
@@ -51,7 +51,7 @@ export function GetPerson(s: Slackt, personId: number) {
     return s.people.find((p) => p.id === personId);
 }
 
-export function DisplayName(p: Person, type: 'short' | 'long' = 'short') {
+export function FormatName(p: Person, type: 'short' | 'long' = 'short') {
     if (type === 'long')
         return `${p.id}: ${p.nameFirst} ${p.nameLast}${
             p.nameLastMaiden ? ` (f. ${p.nameLastMaiden})` : ''
@@ -62,6 +62,16 @@ export function DisplayName(p: Person, type: 'short' | 'long' = 'short') {
     return null;
 }
 
+export function FormatFamily(s: Slackt, f: Family) {
+    let husband = f.husband ? FormatName(FindPerson(s, f.husband)) : null;
+    let wife = f.wife ? FormatName(FindPerson(s, f.wife)) : null;
+    let children = f.children.map((c) => FormatName(FindPerson(s, c)));
+
+    return `${f.id}: ${husband} + ${wife}${
+        children.length > 0 ? ' = ' + children.join(', ') : ''
+    }`;
+}
+
 export function AddFamily(s: Slackt) {
     let newId = s.families.length;
 
@@ -70,8 +80,8 @@ export function AddFamily(s: Slackt) {
         husband: null,
         wife: null,
         children: [],
-        nameLastOverride: null,
-        dateStart: null,
+        nameLastOverride: '',
+        dateStart: '',
     });
 
     return newId;
