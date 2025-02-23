@@ -11,12 +11,11 @@ async function open(e: Event) {
         try {
             openedFile = JSON.parse(text);
         } catch (error) {
-            statusField.innerText = 'Fel på filen';
+            console.error('Fel på filen', error);
         }
 
         if (!openedFile) return;
 
-        statusField.innerText = 'Öppnade ' + file.name;
         refresh();
     }
 }
@@ -30,26 +29,27 @@ function download() {
     const fileName = 'bruv.json';
     el.setAttribute('download', fileName);
     el.click();
-    statusField.innerText = 'Downloaded ' + fileName;
 }
 
 function clear() {
     openedFile = null;
     refresh();
-    statusField.innerText = 'Rensade';
 }
 
 function refresh() {
     peopleSection.innerHTML = '';
     familiesSection.innerHTML = '';
 
+    localStorage.setItem('openedFile', JSON.stringify(openedFile));
+
     if (!openedFile) return;
 
     openedFile.people.forEach((p) => {
-        peopleSection.insertAdjacentHTML(
-            'beforeend',
-            `<p>${DisplayName(p, 'long')}</p>`
-        );
+        let el = document.createElement('p');
+        el.innerHTML = DisplayName(p, 'long') ?? '?';
+        el.setAttribute('data-id', '' + p.id);
+        el.onclick = select;
+        peopleSection.append(el);
     });
 
     openedFile.families.forEach((f) => {
@@ -69,10 +69,15 @@ function refresh() {
     });
 }
 
+function select(e: MouseEvent) {
+    let target = e.target as Element;
+
+    console.log(target.attributes.getNamedItem('data-id')?.value);
+}
+
 const openButton = document.getElementById('open')!;
 const saveButton = document.getElementById('save')!;
 const clearButton = document.getElementById('clear')!;
-const statusField = document.getElementById('statusField')!;
 
 openButton.addEventListener('change', async (e) => await open(e));
 saveButton.onclick = download;
@@ -83,4 +88,8 @@ const familiesSection = document.getElementById('families')!;
 
 let openedFile: Slackt | null = null;
 
-statusField.innerText = 'Ingen fil öppnad';
+let fromLS = localStorage.getItem('openedFile');
+if (fromLS && JSON.parse(fromLS)) {
+    openedFile = JSON.parse(fromLS);
+    refresh();
+}
