@@ -8,8 +8,10 @@
         <title>Slackt - Fyrgeit.se</title>
     </head>
     <body>
-        <h1>Slackt</h1>
-        <h2>Ditt släktforskningsverktyg</h2>
+        <header>
+            <h1>Slackt</h1>
+        </header>
+
         <div id="menuButtons">
             <button onclick="document.getElementById('open').click()">
                 Öppna
@@ -19,6 +21,22 @@
             <button id="clear">Rensa</button>
             <span id="statusField"></span>
         </div>
-        <div id="output"></div>
+        <main>
+            <div id="output">
+                <section>
+                    <h1>Personer</h1>
+                    <main id="people" />
+                    <button>Lägg till</button>
+                </section>
+                <section>
+                    <h1>Familjer</h1>
+                    <main id="families" />
+                    <button>Lägg till</button>
+                </section>
+            </div>
+            <div id="inspector">
+                <p>yup, jag inspekterar</p>
+            </div>
+        </main>
     </body>
 </html>

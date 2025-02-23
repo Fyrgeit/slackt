@@ -5,23 +5,35 @@
     box-sizing: border-box;
 }
 
+header,
+#menuButtons,
+#inspector {
+    padding: 0.5rem;
+}
+
+#menuButtons,
+body>main {
+    border-bottom: 2px #084 solid;
+}
+
+body>main {
+    display: grid;
+    grid-template-columns: 4fr 1fr;
+}
+
 #output {
     display: grid;
     gap: 0.2rem;
-}
-
-#output,
-#output section {
-    border: 1px solid black;
+    margin: 0.5rem;
     padding: 0.2rem;
 }
 
-#output section h1 {
-    text-transform: capitalize;
+#inspector {
+    border-left: 2px #084 solid;
 }
 
 button {
-    background-color: #0c8;
+    background-color: #0c0;
     color: white;
     padding: 0.2rem 0.6rem;
     border: none;
@@ -31,7 +43,7 @@ button {
 }
 
 button:hover {
-    background-color: #086;
+    background-color: #084;
 }
 
 #statusField {

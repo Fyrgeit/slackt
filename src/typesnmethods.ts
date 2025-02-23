@@ -1,14 +1,10 @@
-export type PersonNew = {
+export type Person = {
+    id: number;
     nameFirst: string | null;
     nameLast: string | null;
     nameLastMaiden: string | null;
     dateBirth: string | null;
     dateDeath: string | null;
-};
-
-export type Person = PersonNew & {
-    id: number;
-    families: number[];
 };
 
 export type Family = {
@@ -25,19 +21,18 @@ export type Slackt = {
     families: Family[];
 };
 
-export function AddPerson(s: Slackt, newPerson: PersonNew) {
+export function AddPerson(s: Slackt, newPerson: Omit<Person, 'id'>) {
     let newId = s.people.length;
 
     s.people.push({
         id: newId,
-        families: [],
         ...newPerson,
     });
 
     return newId;
 }
 
-export function AddPeople(s: Slackt, newPeople: PersonNew[]) {
+export function AddPeople(s: Slackt, newPeople: Omit<Person, 'id'>[]) {
     return newPeople.map((p) => AddPerson(s, p));
 }
 
@@ -65,4 +60,36 @@ export function DisplayName(p: Person, type: 'short' | 'long' = 'short') {
     if (type === 'short') return p.nameFirst;
 
     return null;
+}
+
+export function AddFamily(s: Slackt) {
+    let newId = s.families.length;
+
+    s.families.push({
+        id: newId,
+        husband: null,
+        wife: null,
+        children: [],
+        nameLastOverride: null,
+        dateStart: null,
+    });
+
+    return newId;
+}
+
+export function AddPersonToFamily(
+    s: Slackt,
+    familyId: number,
+    personId: number,
+    role: 'husband' | 'wife' | 'child'
+) {
+    let family = s.families.find((f) => f.id === familyId);
+
+    if (!family) throw new Error(`Family ${familyId} does not exist`);
+
+    if (role === 'husband') family.husband = personId;
+    if (role === 'wife') family.husband = personId;
+    if (role === 'child') family.children.push(personId);
+
+    return family;
 }
