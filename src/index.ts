@@ -4,6 +4,7 @@ import {
     FindPerson,
     Person,
     FormatFamily,
+    AddPerson,
 } from './typesnmethods.js';
 
 async function open(e: Event) {
@@ -32,13 +33,26 @@ function download() {
     });
     const el = document.createElement('a');
     el.setAttribute('href', window.URL.createObjectURL(blob));
-    const fileName = 'bruv.json';
+
+    let d = new Date();
+    var datestring =
+        d.getFullYear() +
+        '-' +
+        (d.getMonth() + 1).toString().padStart(2, '0') +
+        '-' +
+        d.getDate().toString().padStart(2, '0') +
+        ' ' +
+        d.getHours().toString().padStart(2, '0') +
+        ':' +
+        d.getMinutes().toString().padStart(2, '0');
+    const fileName = 'slackt ' + datestring + '.json';
+
     el.setAttribute('download', fileName);
     el.click();
 }
 
 function clear() {
-    openedFile = null;
+    openedFile = { people: [], families: [] };
     refresh();
 }
 
@@ -74,15 +88,6 @@ function refreshInspector() {
     }
 
     if (selected.type === 'person') {
-        let person = FindPerson(openedFile, selected.id);
-
-        let formEl = document.createElement('form');
-        formEl.id = 'form';
-        formEl.onchange = (e) => {
-            let target = e.target;
-            //uppdatera openedFile
-        };
-
         let keys: (keyof Person)[] = [
             'nameFirst',
             'nameLast',
@@ -90,6 +95,31 @@ function refreshInspector() {
             'dateBirth',
             'dateDeath',
         ];
+
+        let person = FindPerson(openedFile, selected.id);
+
+        let formEl = document.createElement('form');
+        formEl.id = 'form';
+        formEl.onchange = (e) => {
+            let target = e.target as HTMLInputElement;
+            if (!target) return;
+            let key = target.getAttribute('name');
+            //@ts-ignore
+            if (!key || !keys.includes(key)) return;
+            let k = key as
+                | 'nameFirst'
+                | 'nameLast'
+                | 'nameLastMaiden'
+                | 'dateBirth'
+                | 'dateDeath';
+            person[k] = target.value;
+            refresh();
+        };
+
+        let titleEl = document.createElement('p');
+        titleEl.innerHTML = '#' + person.id;
+        titleEl.style.gridColumnEnd = 'span 2';
+        formEl.append(titleEl);
 
         keys.forEach((key) => {
             let labelEl = document.createElement('label');
@@ -134,7 +164,20 @@ const peopleSection = document.getElementById('people')!;
 const familiesSection = document.getElementById('families')!;
 const inspector = document.getElementById('inspector')!;
 
-let openedFile: Slackt | null = null;
+const addPerson = document.getElementById('addPerson')!;
+addPerson.onclick = () => {
+    AddPerson(openedFile, {
+        nameFirst: '',
+        nameLast: '',
+        nameLastMaiden: '',
+        dateBirth: '',
+        dateDeath: '',
+    });
+    refresh();
+};
+const addFamily = document.getElementById('addFamily')!;
+
+let openedFile: Slackt = { people: [], families: [] };
 let selected:
     | { type: 'person'; id: number }
     | { type: 'family'; id: number }
@@ -142,7 +185,7 @@ let selected:
 
 let fromLS = localStorage.getItem('openedFile');
 if (fromLS) {
-    openedFile = JSON.parse(fromLS);
+    openedFile = JSON.parse(fromLS) || { people: [], families: [] };
 }
 
 refresh();

@@ -53,7 +53,7 @@ export function GetPerson(s: Slackt, personId: number) {
 
 export function FormatName(p: Person, type: 'short' | 'long' = 'short') {
     if (type === 'long')
-        return `${p.id}: ${p.nameFirst} ${p.nameLast}${
+        return `#${p.id} ${p.nameFirst} ${p.nameLast}${
             p.nameLastMaiden ? ` (f. ${p.nameLastMaiden})` : ''
         }`;
 
@@ -67,7 +67,7 @@ export function FormatFamily(s: Slackt, f: Family) {
     let wife = f.wife ? FormatName(FindPerson(s, f.wife)) : null;
     let children = f.children.map((c) => FormatName(FindPerson(s, c)));
 
-    return `${f.id}: ${husband} + ${wife}${
+    return `#${f.id} ${husband} + ${wife}${
         children.length > 0 ? ' = ' + children.join(', ') : ''
     }`;
 }
