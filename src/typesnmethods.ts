@@ -62,6 +62,13 @@ export function FormatName(p: Person, type: 'short' | 'long' = 'short') {
     return null;
 }
 
+export function FindFamily(s: Slackt, familyId: number) {
+    let family = s.families.find((p) => p.id === familyId);
+    if (family === undefined)
+        throw new Error(`Family ${familyId} does not exist`);
+    return family;
+}
+
 export function FormatFamily(s: Slackt, f: Family) {
     let husband = f.husband ? FormatName(FindPerson(s, f.husband)) : null;
     let wife = f.wife ? FormatName(FindPerson(s, f.wife)) : null;

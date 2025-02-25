@@ -5,31 +5,67 @@
     box-sizing: border-box;
 }
 
+html {
+    height: 100svh;
+}
+
+body {
+    max-height: 100svh;
+    display: flex;
+    flex-direction: column;
+}
+
 header,
 #menuButtons,
-#inspector {
+#people,
+#families,
+#inspector>* {
     padding: 0.5rem;
 }
 
-#menuButtons,
-body>main {
+#menuButtons {
     border-bottom: 2px #084 solid;
 }
 
 body>main {
     display: grid;
-    grid-template-columns: 3fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
+    flex: 1;
+    overflow: hidden;
 }
 
-#output {
-    display: grid;
-    gap: 0.2rem;
-    margin: 0.5rem;
-    padding: 0.2rem;
+main>* {
+    overflow: hidden;
+}
+
+#people,
+#families {
+    display: flex;
+    gap: 0.5rem;
+    flex-direction: column;
+}
+
+.list {
+    flex-grow: 1;
+    overflow-y: scroll;
+}
+
+.list p {
+    cursor: pointer;
+}
+
+#families {
+    border-left: 2px #084 solid;
+    border-right: 2px #084 solid;
 }
 
 #inspector {
-    border-left: 2px #084 solid;
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+}
+
+#inspector> :first-child {
+    border-bottom: 2px #084 solid;
 }
 
 button {
@@ -44,11 +80,6 @@ button {
 
 button:hover {
     background-color: #084;
-}
-
-#people>p,
-#families>p {
-    cursor: pointer;
 }
 
 #form {

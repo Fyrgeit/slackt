@@ -5,6 +5,8 @@ import {
     Person,
     FormatFamily,
     AddPerson,
+    FindFamily,
+    Family,
 } from './typesnmethods.js';
 
 async function open(e: Event) {
@@ -68,6 +70,7 @@ function refresh() {
         let el = document.createElement('p');
         el.innerHTML = FormatName(p, 'long') ?? '?';
         el.setAttribute('data-id', '' + p.id);
+        el.setAttribute('data-type', 'person');
         el.onclick = select;
         peopleSection.append(el);
     });
@@ -75,81 +78,142 @@ function refresh() {
     openedFile.families.forEach((f) => {
         let el = document.createElement('p');
         el.innerHTML = FormatFamily(openedFile!, f);
+        el.setAttribute('data-id', '' + f.id);
+        el.setAttribute('data-type', 'family');
+        el.onclick = select;
         familiesSection.append(el);
     });
 }
 
-function refreshInspector() {
-    inspector.innerHTML = '';
+function refreshPersonInspector() {
+    personInspector.innerHTML = '';
 
-    if (selected === null || !openedFile) {
-        inspector.innerHTML = 'Välj person/familj';
+    if (selectedPerson === null) {
+        personInspector.innerHTML = 'Välj person';
         return;
     }
 
-    if (selected.type === 'person') {
-        let keys: (keyof Person)[] = [
-            'nameFirst',
-            'nameLast',
-            'nameLastMaiden',
-            'dateBirth',
-            'dateDeath',
-        ];
+    let keys: (keyof Person)[] = [
+        'nameFirst',
+        'nameLast',
+        'nameLastMaiden',
+        'dateBirth',
+        'dateDeath',
+    ];
 
-        let person = FindPerson(openedFile, selected.id);
+    let person = FindPerson(openedFile, selectedPerson);
 
-        let formEl = document.createElement('form');
-        formEl.id = 'form';
-        formEl.onchange = (e) => {
-            let target = e.target as HTMLInputElement;
-            if (!target) return;
-            let key = target.getAttribute('name');
-            //@ts-ignore
-            if (!key || !keys.includes(key)) return;
-            let k = key as
-                | 'nameFirst'
-                | 'nameLast'
-                | 'nameLastMaiden'
-                | 'dateBirth'
-                | 'dateDeath';
-            person[k] = target.value;
-            refresh();
-        };
+    let formEl = document.createElement('form');
+    formEl.id = 'form';
+    formEl.onchange = (e) => {
+        let target = e.target as HTMLInputElement;
+        if (!target) return;
+        let key = target.getAttribute('name');
+        //@ts-ignore
+        if (!key || !keys.includes(key)) return;
+        let k = key as
+            | 'nameFirst'
+            | 'nameLast'
+            | 'nameLastMaiden'
+            | 'dateBirth'
+            | 'dateDeath';
+        person[k] = target.value;
+        refresh();
+    };
 
-        let titleEl = document.createElement('p');
-        titleEl.innerHTML = '#' + person.id;
-        titleEl.style.gridColumnEnd = 'span 2';
-        formEl.append(titleEl);
+    let titleEl = document.createElement('p');
+    titleEl.innerHTML = '#' + person.id;
+    titleEl.style.gridColumnEnd = 'span 2';
+    formEl.append(titleEl);
 
-        keys.forEach((key) => {
-            let labelEl = document.createElement('label');
-            labelEl.innerHTML = key;
-            labelEl.setAttribute('for', key);
+    keys.forEach((key) => {
+        let labelEl = document.createElement('label');
+        labelEl.innerHTML = key;
+        labelEl.setAttribute('for', key);
 
-            let inputEl = document.createElement('input');
-            inputEl.setAttribute('type', 'text');
-            inputEl.setAttribute('name', key);
-            inputEl.value = '' + person[key];
+        let inputEl = document.createElement('input');
+        inputEl.setAttribute('type', 'text');
+        inputEl.setAttribute('name', key);
+        inputEl.value = '' + person[key];
 
-            formEl.append(labelEl);
-            formEl.append(inputEl);
-        });
+        formEl.append(labelEl);
+        formEl.append(inputEl);
+    });
 
-        inspector.append(formEl);
+    personInspector.append(formEl);
+}
+
+function refreshFamilyInspector() {
+    familyInspector.innerHTML = '';
+
+    if (selectedFamily === null) {
+        familyInspector.innerHTML = 'Välj familj';
+        return;
     }
+
+    let keys: (keyof Family)[] = ['nameLastOverride', 'dateStart'];
+
+    let family = FindFamily(openedFile, selectedFamily);
+
+    let formEl = document.createElement('form');
+    formEl.id = 'form';
+    formEl.onchange = (e) => {
+        let target = e.target as HTMLInputElement;
+        if (!target) return;
+        let key = target.getAttribute('name');
+        //@ts-ignore
+        if (!key || !keys.includes(key)) return;
+        let k = key as 'nameLastOverride' | 'dateStart';
+        family[k] = target.value;
+        refresh();
+    };
+
+    let titleEl = document.createElement('p');
+    titleEl.innerHTML = '#' + family.id;
+    titleEl.style.gridColumnEnd = 'span 2';
+    formEl.append(titleEl);
+
+    keys.forEach((key) => {
+        let labelEl = document.createElement('label');
+        labelEl.innerHTML = key;
+        labelEl.setAttribute('for', key);
+
+        let inputEl = document.createElement('input');
+        inputEl.setAttribute('type', 'text');
+        inputEl.setAttribute('name', key);
+        inputEl.value = '' + family[key];
+
+        formEl.append(labelEl);
+        formEl.append(inputEl);
+    });
+
+    familyInspector.append(formEl);
 }
 
 function select(e: MouseEvent) {
     let target = e.target as Element;
     let id = target.attributes.getNamedItem('data-id')?.value;
-    if (id === undefined || openedFile === null) {
-        selected = null;
-        refreshInspector();
-        return;
-    }
+    let type = target.attributes.getNamedItem('data-type')?.value;
 
-    selected = { type: 'person', id: parseInt(id) };
-    refreshInspector();
+    if (type === 'person') {
+        if (id === undefined) {
+            selectedPerson = null;
+            refreshPersonInspector();
+            return;
+        }
+
+        selectedPerson = parseInt(id);
+        refreshPersonInspector();
+    } else if (type === 'family') {
+        if (id === undefined) {
+            selectedFamily = null;
+            refreshFamilyInspector();
+            return;
+        }
+
+        selectedFamily = parseInt(id);
+        refreshFamilyInspector();
+    }
 }
 
 const openButton = document.getElementById('open')!;
@@ -160,9 +224,10 @@ openButton.addEventListener('change', async (e) => await open(e));
 saveButton.onclick = download;
 clearButton.onclick = clear;
 
-const peopleSection = document.getElementById('people')!;
-const familiesSection = document.getElementById('families')!;
-const inspector = document.getElementById('inspector')!;
+const peopleSection = document.querySelector('#people .list')!;
+const familiesSection = document.querySelector('#families .list')!;
+const personInspector = document.getElementById('person')!;
+const familyInspector = document.getElementById('family')!;
 
 const addPerson = document.getElementById('addPerson')!;
 addPerson.onclick = () => {
@@ -178,10 +243,8 @@ addPerson.onclick = () => {
 const addFamily = document.getElementById('addFamily')!;
 
 let openedFile: Slackt = { people: [], families: [] };
-let selected:
-    | { type: 'person'; id: number }
-    | { type: 'family'; id: number }
-    | null = null;
+let selectedPerson: number | null = null;
+let selectedFamily: number | null = null;
 
 let fromLS = localStorage.getItem('openedFile');
 if (fromLS) {
@@ -189,4 +252,5 @@ if (fromLS) {
 }
 
 refresh();
-refreshInspector();
+refreshPersonInspector();
+refreshFamilyInspector();
