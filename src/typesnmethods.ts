@@ -51,13 +51,19 @@ export function GetPerson(s: Slackt, personId: number) {
     return s.people.find((p) => p.id === personId);
 }
 
-export function FormatName(p: Person, type: 'short' | 'long' = 'short') {
-    if (type === 'long')
-        return `#${p.id} ${p.nameFirst} ${p.nameLast}${
-            p.nameLastMaiden ? ` (f. ${p.nameLastMaiden})` : ''
-        }`;
-
+export function FormatName(
+    p: Person,
+    type: 'short' | 'full' | 'extra' = 'short'
+) {
     if (type === 'short') return p.nameFirst;
+
+    let full = `${p.nameFirst} ${p.nameLast}${
+        p.nameLastMaiden ? ` (f. ${p.nameLastMaiden})` : ''
+    }`;
+
+    if (type === 'full') return full;
+
+    if (type === 'extra') return `#${p.id} ${full}`;
 
     return '';
 }
@@ -74,7 +80,7 @@ export function FormatFamily(s: Slackt, f: Family) {
     let wife = f.wife ? FormatName(FindPerson(s, f.wife)) : null;
     let children = f.children.map((c) => FormatName(FindPerson(s, c)));
 
-    return `#${f.id} ${husband} + ${wife}${
+    return `#${f.id} ${husband ?? '?'} + ${wife ?? '?'}${
         children.length > 0 ? ' = ' + children.join(', ') : ''
     }`;
 }

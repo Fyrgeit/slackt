@@ -69,7 +69,8 @@ function refresh() {
 
     openedFile.people.forEach((p) => {
         let el = document.createElement('p');
-        el.innerHTML = FormatName(p, 'long') ?? '?';
+        el.innerHTML = FormatName(p, 'extra') ?? '?';
+        if (p.id === selectedPerson) el.classList.add('embolden');
         el.setAttribute('data-id', '' + p.id);
         el.setAttribute('data-type', 'person');
         el.onclick = select;
@@ -79,6 +80,7 @@ function refresh() {
     openedFile.families.forEach((f) => {
         let el = document.createElement('p');
         el.innerHTML = FormatFamily(openedFile!, f);
+        if (f.id === selectedFamily) el.classList.add('embolden');
         el.setAttribute('data-id', '' + f.id);
         el.setAttribute('data-type', 'family');
         el.onclick = select;
@@ -195,8 +197,8 @@ function refreshFamilyInspector() {
     let husbandEl = document.createElement('p');
     husbandEl.classList.add('grow');
     husbandEl.innerHTML = family.husband
-        ? FormatName(FindPerson(openedFile, family.husband))
-        : 'null';
+        ? FormatName(FindPerson(openedFile, family.husband), 'full')
+        : '?';
     husbandContainer.append(husbandEl);
 
     let addHusband = document.createElement('button');
@@ -232,8 +234,8 @@ function refreshFamilyInspector() {
     let wifeEl = document.createElement('p');
     wifeEl.classList.add('grow');
     wifeEl.innerHTML = family.wife
-        ? FormatName(FindPerson(openedFile, family.wife))
-        : 'null';
+        ? FormatName(FindPerson(openedFile, family.wife), 'full')
+        : '?';
     wifeContainer.append(wifeEl);
 
     let addWife = document.createElement('button');
@@ -271,7 +273,7 @@ function refreshFamilyInspector() {
 
         let child = FindPerson(openedFile, c);
         let childEl = document.createElement('p');
-        childEl.innerHTML = FormatName(child);
+        childEl.innerHTML = FormatName(child, 'full');
         childEl.classList.add('grow');
         childContainer.append(childEl);
 
@@ -343,6 +345,8 @@ function select(e: MouseEvent) {
         selectedFamily = parseInt(id);
         refreshFamilyInspector();
     }
+
+    refresh();
 }
 
 const openButton = document.getElementById('open')!;
@@ -360,12 +364,14 @@ const familyInspector = document.getElementById('family')!;
 
 const addPerson = document.getElementById('addPerson')!;
 addPerson.onclick = () => {
-    AddPerson(openedFile);
+    selectedPerson = AddPerson(openedFile);
+    refreshPersonInspector();
     refresh();
 };
 const addFamily = document.getElementById('addFamily')!;
 addFamily.onclick = () => {
-    AddFamily(openedFile);
+    selectedFamily = AddFamily(openedFile);
+    refreshFamilyInspector();
     refresh();
 };
 

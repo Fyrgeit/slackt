@@ -60,14 +60,13 @@ main>* {
     cursor: pointer;
 }
 
+.embolden {
+    font-weight: bolder;
+}
+
 #families {
     border-left: 2px #084 solid;
     border-right: 2px #084 solid;
-}
-
-#inspector {
-    display: grid;
-    grid-template-rows: 1fr 1fr;
 }
 
 #inspector> :first-child {
@@ -90,7 +89,7 @@ button:hover {
 
 #form {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr auto;
 }
 
 .hcont {
