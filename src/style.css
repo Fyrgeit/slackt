@@ -23,6 +23,12 @@ header,
     padding: 0.5rem;
 }
 
+header {
+    display: flex;
+    gap: 1rem;
+    align-items: baseline;
+}
+
 #menuButtons {
     border-bottom: 2px #084 solid;
 }

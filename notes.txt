@@ -1,0 +1,17 @@
+Familje-view
+
+  [H i U]  [S p S]    [U i Ö]   [H i U]     [S p S]  [G i O]
+    Per-----Nilla      Peter-----Maria       Birger---Inga
+         |                                          |
+      [H i A]              [U i H]               [S p S]
+  --------------                             ---------------->...
+  |      |     |                             |      |      |
+Ellen  Truls  Måns                         Nilla   Per   Kersti
+   .                                     [H i A] [M p F] [Å i S]
+
+Person-view
+
+[Bertil]---[Eva]
+         |
+         |
+        Per---[Nilla]
