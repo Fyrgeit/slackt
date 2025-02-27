@@ -89,7 +89,7 @@ function refresh() {
 function refreshPersonInspector() {
     localStorage.setItem(
         'selectedPerson',
-        selectedPerson ? '' + selectedPerson : 'null'
+        selectedPerson !== null ? '' + selectedPerson : 'null'
     );
     personInspector.innerHTML = '';
 
@@ -113,7 +113,7 @@ function refreshPersonInspector() {
     formEl.onchange = (e) => {
         let target = e.target as HTMLInputElement;
         if (!target) return;
-        let key = target.getAttribute('name');
+        let key = target.id;
         //@ts-ignore
         if (!key || !keys.includes(key)) return;
         let k = key as
@@ -151,7 +151,7 @@ function refreshPersonInspector() {
 function refreshFamilyInspector() {
     localStorage.setItem(
         'selectedFamily',
-        selectedFamily ? '' + selectedFamily : 'null'
+        selectedFamily !== null ? '' + selectedFamily : 'null'
     );
     familyInspector.innerHTML = '';
 
@@ -165,14 +165,14 @@ function refreshFamilyInspector() {
     let family = FindFamily(openedFile, selectedFamily);
 
     let formEl = document.createElement('form');
-    formEl.onsubmit = (e) => {
+    formEl.addEventListener('submit', (e) => {
         e.preventDefault();
-    };
+    });
     formEl.id = 'form';
     formEl.onchange = (e) => {
         let target = e.target as HTMLInputElement;
         if (!target) return;
-        let key = target.getAttribute('name');
+        let key = target.id;
         //@ts-ignore
         if (!key || !keys.includes(key)) return;
         let k = key as 'nameLastOverride' | 'dateStart';
@@ -201,6 +201,7 @@ function refreshFamilyInspector() {
 
     let addHusband = document.createElement('button');
     addHusband.innerHTML = '+';
+    addHusband.setAttribute('type', 'button');
     addHusband.onclick = () => {
         family.husband = selectedPerson;
         refresh();
@@ -210,6 +211,7 @@ function refreshFamilyInspector() {
 
     let removeHusband = document.createElement('button');
     removeHusband.innerHTML = 'x';
+    removeHusband.setAttribute('type', 'button');
     removeHusband.onclick = () => {
         family.husband = null;
         refresh();
@@ -236,6 +238,7 @@ function refreshFamilyInspector() {
 
     let addWife = document.createElement('button');
     addWife.innerHTML = '+';
+    addWife.setAttribute('type', 'button');
     addWife.onclick = () => {
         family.wife = selectedPerson;
         refresh();
@@ -245,6 +248,7 @@ function refreshFamilyInspector() {
 
     let removeWife = document.createElement('button');
     removeWife.innerHTML = 'x';
+    removeWife.setAttribute('type', 'button');
     removeWife.onclick = () => {
         family.wife = null;
         refresh();
@@ -254,6 +258,49 @@ function refreshFamilyInspector() {
     wifeContainer.append(removeWife);
 
     formEl.append(wifeContainer);
+
+    let childrenLabel = document.createElement('label');
+    childrenLabel.innerHTML = 'Barn';
+    formEl.append(childrenLabel);
+
+    let childrenContainer = document.createElement('div');
+
+    family.children.forEach((c) => {
+        let childContainer = document.createElement('div');
+        childContainer.classList.add('hcont');
+
+        let child = FindPerson(openedFile, c);
+        let childEl = document.createElement('p');
+        childEl.innerHTML = FormatName(child);
+        childEl.classList.add('grow');
+        childContainer.append(childEl);
+
+        let removeChild = document.createElement('button');
+        removeChild.innerHTML = 'x';
+        removeChild.setAttribute('type', 'button');
+        removeChild.onclick = () => {
+            family.children = family.children.filter((fc) => fc !== c);
+            refresh();
+            refreshFamilyInspector();
+        };
+        childContainer.append(removeChild);
+
+        childrenContainer.append(childContainer);
+    });
+
+    let addChild = document.createElement('button');
+    addChild.innerHTML = '+';
+    addChild.setAttribute('type', 'button');
+    addChild.onclick = () => {
+        if (selectedPerson == null || family.children.includes(selectedPerson))
+            return;
+
+        family.children.push(selectedPerson);
+        refresh();
+        refreshFamilyInspector();
+    };
+    childrenContainer.append(addChild);
+    formEl.append(childrenContainer);
 
     keys.forEach((key) => {
         let labelEl = document.createElement('label');
