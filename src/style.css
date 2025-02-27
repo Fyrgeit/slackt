@@ -86,3 +86,12 @@ button:hover {
     display: grid;
     grid-template-columns: 1fr 1fr;
 }
+
+.hcont {
+    display: flex;
+    gap: 0.2rem;
+}
+
+.grow {
+    flex-grow: 1;
+}

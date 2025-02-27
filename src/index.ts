@@ -7,6 +7,7 @@ import {
     AddPerson,
     FindFamily,
     Family,
+    AddFamily,
 } from './typesnmethods.js';
 
 async function open(e: Event) {
@@ -86,6 +87,10 @@ function refresh() {
 }
 
 function refreshPersonInspector() {
+    localStorage.setItem(
+        'selectedPerson',
+        selectedPerson ? '' + selectedPerson : 'null'
+    );
     personInspector.innerHTML = '';
 
     if (selectedPerson === null) {
@@ -133,7 +138,7 @@ function refreshPersonInspector() {
 
         let inputEl = document.createElement('input');
         inputEl.setAttribute('type', 'text');
-        inputEl.setAttribute('name', key);
+        inputEl.id = key;
         inputEl.value = '' + person[key];
 
         formEl.append(labelEl);
@@ -144,6 +149,10 @@ function refreshPersonInspector() {
 }
 
 function refreshFamilyInspector() {
+    localStorage.setItem(
+        'selectedFamily',
+        selectedFamily ? '' + selectedFamily : 'null'
+    );
     familyInspector.innerHTML = '';
 
     if (selectedFamily === null) {
@@ -156,6 +165,9 @@ function refreshFamilyInspector() {
     let family = FindFamily(openedFile, selectedFamily);
 
     let formEl = document.createElement('form');
+    formEl.onsubmit = (e) => {
+        e.preventDefault();
+    };
     formEl.id = 'form';
     formEl.onchange = (e) => {
         let target = e.target as HTMLInputElement;
@@ -173,6 +185,76 @@ function refreshFamilyInspector() {
     titleEl.style.gridColumnEnd = 'span 2';
     formEl.append(titleEl);
 
+    let husbandLabel = document.createElement('label');
+    husbandLabel.innerHTML = 'Man';
+    formEl.append(husbandLabel);
+
+    let husbandContainer = document.createElement('div');
+    husbandContainer.classList.add('hcont');
+
+    let husbandEl = document.createElement('p');
+    husbandEl.classList.add('grow');
+    husbandEl.innerHTML = family.husband
+        ? FormatName(FindPerson(openedFile, family.husband))
+        : 'null';
+    husbandContainer.append(husbandEl);
+
+    let addHusband = document.createElement('button');
+    addHusband.innerHTML = '+';
+    addHusband.onclick = () => {
+        family.husband = selectedPerson;
+        refresh();
+        refreshFamilyInspector();
+    };
+    husbandContainer.append(addHusband);
+
+    let removeHusband = document.createElement('button');
+    removeHusband.innerHTML = 'x';
+    removeHusband.onclick = () => {
+        family.husband = null;
+        refresh();
+        refreshFamilyInspector();
+    };
+
+    husbandContainer.append(removeHusband);
+
+    formEl.append(husbandContainer);
+
+    let wifeLabel = document.createElement('label');
+    wifeLabel.innerHTML = 'Fru';
+    formEl.append(wifeLabel);
+
+    let wifeContainer = document.createElement('div');
+    wifeContainer.classList.add('hcont');
+
+    let wifeEl = document.createElement('p');
+    wifeEl.classList.add('grow');
+    wifeEl.innerHTML = family.wife
+        ? FormatName(FindPerson(openedFile, family.wife))
+        : 'null';
+    wifeContainer.append(wifeEl);
+
+    let addWife = document.createElement('button');
+    addWife.innerHTML = '+';
+    addWife.onclick = () => {
+        family.wife = selectedPerson;
+        refresh();
+        refreshFamilyInspector();
+    };
+    wifeContainer.append(addWife);
+
+    let removeWife = document.createElement('button');
+    removeWife.innerHTML = 'x';
+    removeWife.onclick = () => {
+        family.wife = null;
+        refresh();
+        refreshFamilyInspector();
+    };
+
+    wifeContainer.append(removeWife);
+
+    formEl.append(wifeContainer);
+
     keys.forEach((key) => {
         let labelEl = document.createElement('label');
         labelEl.innerHTML = key;
@@ -180,7 +262,7 @@ function refreshFamilyInspector() {
 
         let inputEl = document.createElement('input');
         inputEl.setAttribute('type', 'text');
-        inputEl.setAttribute('name', key);
+        inputEl.id = key;
         inputEl.value = '' + family[key];
 
         formEl.append(labelEl);
@@ -231,20 +313,24 @@ const familyInspector = document.getElementById('family')!;
 
 const addPerson = document.getElementById('addPerson')!;
 addPerson.onclick = () => {
-    AddPerson(openedFile, {
-        nameFirst: '',
-        nameLast: '',
-        nameLastMaiden: '',
-        dateBirth: '',
-        dateDeath: '',
-    });
+    AddPerson(openedFile);
     refresh();
 };
 const addFamily = document.getElementById('addFamily')!;
+addFamily.onclick = () => {
+    AddFamily(openedFile);
+    refresh();
+};
 
 let openedFile: Slackt = { people: [], families: [] };
+
 let selectedPerson: number | null = null;
+let sp = localStorage.getItem('selectedPerson');
+if (sp !== null && sp !== 'null') selectedPerson = parseInt(sp);
+
 let selectedFamily: number | null = null;
+let sf = localStorage.getItem('selectedFamily');
+if (sf !== null && sf !== 'null') selectedFamily = parseInt(sf);
 
 let fromLS = localStorage.getItem('openedFile');
 if (fromLS) {

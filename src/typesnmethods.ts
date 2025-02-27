@@ -21,19 +21,19 @@ export type Slackt = {
     families: Family[];
 };
 
-export function AddPerson(s: Slackt, newPerson: Omit<Person, 'id'>) {
+export function AddPerson(s: Slackt) {
     let newId = s.people.length;
 
     s.people.push({
         id: newId,
-        ...newPerson,
+        nameFirst: '',
+        nameLast: '',
+        nameLastMaiden: '',
+        dateBirth: '',
+        dateDeath: '',
     });
 
     return newId;
-}
-
-export function AddPeople(s: Slackt, newPeople: Omit<Person, 'id'>[]) {
-    return newPeople.map((p) => AddPerson(s, p));
 }
 
 export function FindPerson(s: Slackt, personId: number) {
@@ -59,7 +59,7 @@ export function FormatName(p: Person, type: 'short' | 'long' = 'short') {
 
     if (type === 'short') return p.nameFirst;
 
-    return null;
+    return '';
 }
 
 export function FindFamily(s: Slackt, familyId: number) {
