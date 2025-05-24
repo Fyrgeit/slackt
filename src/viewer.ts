@@ -4,7 +4,8 @@ import {
     download,
     clear,
     FormatFamily,
-    Family,
+    Person,
+    FindPerson,
 } from './typesnmethods.js';
 
 function refresh() {
@@ -19,6 +20,20 @@ function refresh() {
     });
 
     familySelectEl.value = '' + selectedFamily;
+
+    mainArea.innerHTML = '';
+    let family = openedFile.families.find((f) => f.id === selectedFamily);
+    if (family) {
+        if (family.husband !== null)
+            mainArea.append(infoBox(FindPerson(openedFile, family.husband)));
+    }
+}
+
+function infoBox(person: Person) {
+    const box = document.createElement('div');
+    box.classList.add('infoBox');
+    box.innerHTML = person.nameFirst;
+    return box;
 }
 
 const openButton = document.getElementById('open')!;
@@ -41,7 +56,9 @@ const familySelectEl = document.getElementById(
 
 familySelectEl.onchange = (e) => {
     let target = e.target as HTMLSelectElement;
+    selectedFamily = parseInt(target.value);
     localStorage.setItem('selectedFamily', target.value);
+    refresh();
 };
 
 const mainArea = document.getElementById('viewer')!;
