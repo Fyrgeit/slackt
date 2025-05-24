@@ -6,6 +6,7 @@ import {
     FormatFamily,
     Person,
     FindPerson,
+    FormatName,
 } from './typesnmethods.js';
 
 function refresh() {
@@ -24,16 +25,87 @@ function refresh() {
     mainArea.innerHTML = '';
     let family = openedFile.families.find((f) => f.id === selectedFamily);
     if (family) {
-        if (family.husband !== null)
-            mainArea.append(infoBox(FindPerson(openedFile, family.husband)));
+        const firstRow = document.createElement('div');
+        firstRow.classList.add('hcont');
+
+        if (family.husband !== null) {
+            firstRow.append(
+                infoBox(FindPerson(openedFile, family.husband), 'husband')
+            );
+        } else {
+            firstRow.append(infoBox('none', 'husband'));
+        }
+
+        if (family.wife !== null) {
+            firstRow.append(
+                infoBox(FindPerson(openedFile, family.wife), 'wife')
+            );
+        } else {
+            firstRow.append(infoBox('none', 'wife'));
+        }
+
+        mainArea.append(firstRow);
+        mainArea.append(
+            (() => {
+                const p = document.createElement('p');
+                p.classList.add('small');
+                p.innerHTML = 'Barn';
+                return p;
+            })()
+        );
+
+        const secondRow = document.createElement('div');
+        secondRow.classList.add('hcont');
+
+        family.children.forEach((c) => {
+            secondRow.append(infoBox(FindPerson(openedFile, c), 'child'));
+        });
+        secondRow.append(infoBox('none', 'child'));
+
+        mainArea.append(secondRow);
     }
 }
 
-function infoBox(person: Person) {
+function infoBox(person: Person | 'none', role: 'husband' | 'wife' | 'child') {
+    const roleName = {
+        husband: 'Man',
+        wife: 'Fru',
+        child: 'Barn',
+    }[role];
+
+    const wrapper = document.createElement('div');
+    wrapper.classList.add('vcont');
+    if (role !== 'child')
+        wrapper.innerHTML = '<p class="small">' + roleName + '</p>';
+
     const box = document.createElement('div');
     box.classList.add('infoBox');
-    box.innerHTML = person.nameFirst;
-    return box;
+    if (person === 'none') {
+        const button = document.createElement('button');
+        button.innerHTML = '➕';
+        wrapper.append(button);
+        return wrapper;
+    }
+
+    box.innerHTML = `<p>${person.nameFirst}</p>`;
+
+    const iconRow = document.createElement('div');
+    iconRow.classList.add('hcont');
+
+    const deleteButton = document.createElement('button');
+    deleteButton.innerHTML = '➖';
+    iconRow.append(deleteButton);
+    const editButton = document.createElement('button');
+    editButton.innerHTML = '✏️';
+    iconRow.append(editButton);
+    const familyButton = document.createElement('button');
+    familyButton.innerHTML = '👨‍👩‍👦';
+    iconRow.append(familyButton);
+
+    box.append(iconRow);
+
+    wrapper.append(box);
+    return wrapper;
 }
 
 const openButton = document.getElementById('open')!;

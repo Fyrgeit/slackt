@@ -15,41 +15,21 @@
         </header>
 
         <div id="menuButtons">
-            <button onclick="document.getElementById('open').click()">
+            <button
+                class="textButton"
+                onclick="document.getElementById('open').click()"
+            >
                 Öppna
             </button>
             <input type="file" id="open" accept=".json" style="display: none" />
-            <button id="save">Spara</button>
-            <button id="clear">Rensa</button>
+            <button class="textButton" id="save">Spara</button>
+            <button class="textButton" id="clear">Rensa</button>
         </div>
 
         <main>
             <label for="selectFamily">Välj familj</label>
             <select id="selectFamily"></select>
-            <div id="viewer">
-                <div class="hcont">
-                    <div class="box">
-                        <p>Man</p>
-                        <p>Per Henriksson</p>
-                    </div>
-                    <div class="box">
-                        <p>Fru</p>
-                        <p>Nilla Henriksson</p>
-                    </div>
-                </div>
-                <p>Barn</p>
-                <div class="hcont">
-                    <div class="box">
-                        <p>Ellen Henriksson</p>
-                    </div>
-                    <div class="box">
-                        <p>Truls Henriksson</p>
-                    </div>
-                    <div class="box">
-                        <p>Måns Henriksson</p>
-                    </div>
-                </div>
-            </div>
+            <div id="viewer"></div>
         </main>
     </body>
 </html>

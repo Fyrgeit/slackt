@@ -155,26 +155,27 @@ function refreshFamilyInspector() {
         : '?';
     husbandContainer.append(husbandEl);
 
-    let addHusband = document.createElement('button');
-    addHusband.innerHTML = '+';
-    addHusband.setAttribute('type', 'button');
-    addHusband.onclick = () => {
-        family.husband = selectedPerson;
-        refreshLists();
-        refreshFamilyInspector();
-    };
-    husbandContainer.append(addHusband);
-
-    let removeHusband = document.createElement('button');
-    removeHusband.innerHTML = 'x';
-    removeHusband.setAttribute('type', 'button');
-    removeHusband.onclick = () => {
-        family.husband = null;
-        refreshLists();
-        refreshFamilyInspector();
-    };
-
-    husbandContainer.append(removeHusband);
+    if (family.husband === null) {
+        let addHusband = document.createElement('button');
+        addHusband.innerHTML = '➕';
+        addHusband.setAttribute('type', 'button');
+        addHusband.onclick = () => {
+            family.husband = selectedPerson;
+            refreshLists();
+            refreshFamilyInspector();
+        };
+        husbandContainer.append(addHusband);
+    } else {
+        let removeHusband = document.createElement('button');
+        removeHusband.innerHTML = '➖';
+        removeHusband.setAttribute('type', 'button');
+        removeHusband.onclick = () => {
+            family.husband = null;
+            refreshLists();
+            refreshFamilyInspector();
+        };
+        husbandContainer.append(removeHusband);
+    }
 
     formEl.append(husbandContainer);
 
@@ -192,26 +193,27 @@ function refreshFamilyInspector() {
         : '?';
     wifeContainer.append(wifeEl);
 
-    let addWife = document.createElement('button');
-    addWife.innerHTML = '+';
-    addWife.setAttribute('type', 'button');
-    addWife.onclick = () => {
-        family.wife = selectedPerson;
-        refreshLists();
-        refreshFamilyInspector();
-    };
-    wifeContainer.append(addWife);
-
-    let removeWife = document.createElement('button');
-    removeWife.innerHTML = 'x';
-    removeWife.setAttribute('type', 'button');
-    removeWife.onclick = () => {
-        family.wife = null;
-        refreshLists();
-        refreshFamilyInspector();
-    };
-
-    wifeContainer.append(removeWife);
+    if (family.wife === null) {
+        let addWife = document.createElement('button');
+        addWife.innerHTML = '➕';
+        addWife.setAttribute('type', 'button');
+        addWife.onclick = () => {
+            family.wife = selectedPerson;
+            refreshLists();
+            refreshFamilyInspector();
+        };
+        wifeContainer.append(addWife);
+    } else {
+        let removeWife = document.createElement('button');
+        removeWife.innerHTML = '➖';
+        removeWife.setAttribute('type', 'button');
+        removeWife.onclick = () => {
+            family.wife = null;
+            refreshLists();
+            refreshFamilyInspector();
+        };
+        wifeContainer.append(removeWife);
+    }
 
     formEl.append(wifeContainer);
 
@@ -232,7 +234,7 @@ function refreshFamilyInspector() {
         childContainer.append(childEl);
 
         let removeChild = document.createElement('button');
-        removeChild.innerHTML = 'x';
+        removeChild.innerHTML = '➖';
         removeChild.setAttribute('type', 'button');
         removeChild.onclick = () => {
             family.children = family.children.filter((fc) => fc !== c);
@@ -245,7 +247,7 @@ function refreshFamilyInspector() {
     });
 
     let addChild = document.createElement('button');
-    addChild.innerHTML = '+';
+    addChild.innerHTML = '➕';
     addChild.setAttribute('type', 'button');
     addChild.onclick = () => {
         if (selectedPerson == null || family.children.includes(selectedPerson))

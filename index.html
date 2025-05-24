@@ -15,23 +15,30 @@
         </header>
 
         <div id="menuButtons">
-            <button onclick="document.getElementById('open').click()">
+            <button
+                class="textButton"
+                onclick="document.getElementById('open').click()"
+            >
                 Öppna
             </button>
             <input type="file" id="open" accept=".json" style="display: none" />
-            <button id="save">Spara</button>
-            <button id="clear">Rensa</button>
+            <button class="textButton" id="save">Spara</button>
+            <button class="textButton" id="clear">Rensa</button>
         </div>
         <main id="editor">
             <div id="people">
                 <h1>Personer</h1>
                 <div class="list"></div>
-                <button id="addPerson">Lägg till</button>
+                <button class="textButton" id="addPerson">
+                    Lägg till person
+                </button>
             </div>
             <div id="families">
                 <h1>Familjer</h1>
                 <div class="list"></div>
-                <button id="addFamily">Lägg till</button>
+                <button class="textButton" id="addFamily">
+                    Lägg till familj
+                </button>
             </div>
             <div id="inspector">
                 <div>
