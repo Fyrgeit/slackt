@@ -116,3 +116,53 @@ export function AddPersonToFamily(
 
     return family;
 }
+
+export function download(openedFile: Slackt) {
+    const blob = new Blob([JSON.stringify(openedFile)], {
+        type: 'application/json',
+    });
+    const el = document.createElement('a');
+    el.setAttribute('href', window.URL.createObjectURL(blob));
+
+    let d = new Date();
+    var datestring =
+        d.getFullYear() +
+        '-' +
+        (d.getMonth() + 1).toString().padStart(2, '0') +
+        '-' +
+        d.getDate().toString().padStart(2, '0') +
+        ' ' +
+        d.getHours().toString().padStart(2, '0') +
+        ':' +
+        d.getMinutes().toString().padStart(2, '0');
+    const fileName = 'slackt ' + datestring + '.json';
+
+    el.setAttribute('download', fileName);
+    el.click();
+}
+
+export async function open(e: Event, openedFile: Slackt) {
+    if (e.target instanceof HTMLInputElement) {
+        const file = e.target.files?.item(0);
+        const text = await file?.text();
+        if (!file || !text) {
+            console.error('äawh');
+            return null;
+        }
+        try {
+            openedFile = JSON.parse(text);
+        } catch (error) {
+            console.error('Fel på filen', error);
+        }
+
+        if (openedFile) {
+            localStorage.setItem('openedFile', JSON.stringify(openedFile));
+            return openedFile;
+        }
+    }
+}
+
+export function clear() {
+    localStorage.setItem('openedFile', '{ "people": [], "families": [] }');
+    return { people: [], families: [] };
+}

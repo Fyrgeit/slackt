@@ -8,58 +8,12 @@ import {
     FindFamily,
     Family,
     AddFamily,
+    download,
+    open,
+    clear,
 } from './typesnmethods.js';
 
-async function open(e: Event) {
-    if (e.target instanceof HTMLInputElement) {
-        const file = e.target.files?.item(0);
-        const text = await file?.text();
-        if (!file || !text) {
-            console.error('äawh');
-            return;
-        }
-        try {
-            openedFile = JSON.parse(text);
-        } catch (error) {
-            console.error('Fel på filen', error);
-        }
-
-        if (!openedFile) return;
-
-        refresh();
-    }
-}
-
-function download() {
-    const blob = new Blob([JSON.stringify(openedFile)], {
-        type: 'application/json',
-    });
-    const el = document.createElement('a');
-    el.setAttribute('href', window.URL.createObjectURL(blob));
-
-    let d = new Date();
-    var datestring =
-        d.getFullYear() +
-        '-' +
-        (d.getMonth() + 1).toString().padStart(2, '0') +
-        '-' +
-        d.getDate().toString().padStart(2, '0') +
-        ' ' +
-        d.getHours().toString().padStart(2, '0') +
-        ':' +
-        d.getMinutes().toString().padStart(2, '0');
-    const fileName = 'slackt ' + datestring + '.json';
-
-    el.setAttribute('download', fileName);
-    el.click();
-}
-
-function clear() {
-    openedFile = { people: [], families: [] };
-    refresh();
-}
-
-function refresh() {
+function refreshLists() {
     peopleSection.innerHTML = '';
     familiesSection.innerHTML = '';
 
@@ -125,7 +79,7 @@ function refreshPersonInspector() {
             | 'dateBirth'
             | 'dateDeath';
         person[k] = target.value;
-        refresh();
+        refreshLists();
     };
 
     let titleEl = document.createElement('p');
@@ -179,7 +133,7 @@ function refreshFamilyInspector() {
         if (!key || !keys.includes(key)) return;
         let k = key as 'nameLastOverride' | 'dateStart';
         family[k] = target.value;
-        refresh();
+        refreshLists();
     };
 
     let titleEl = document.createElement('p');
@@ -206,7 +160,7 @@ function refreshFamilyInspector() {
     addHusband.setAttribute('type', 'button');
     addHusband.onclick = () => {
         family.husband = selectedPerson;
-        refresh();
+        refreshLists();
         refreshFamilyInspector();
     };
     husbandContainer.append(addHusband);
@@ -216,7 +170,7 @@ function refreshFamilyInspector() {
     removeHusband.setAttribute('type', 'button');
     removeHusband.onclick = () => {
         family.husband = null;
-        refresh();
+        refreshLists();
         refreshFamilyInspector();
     };
 
@@ -243,7 +197,7 @@ function refreshFamilyInspector() {
     addWife.setAttribute('type', 'button');
     addWife.onclick = () => {
         family.wife = selectedPerson;
-        refresh();
+        refreshLists();
         refreshFamilyInspector();
     };
     wifeContainer.append(addWife);
@@ -253,7 +207,7 @@ function refreshFamilyInspector() {
     removeWife.setAttribute('type', 'button');
     removeWife.onclick = () => {
         family.wife = null;
-        refresh();
+        refreshLists();
         refreshFamilyInspector();
     };
 
@@ -282,7 +236,7 @@ function refreshFamilyInspector() {
         removeChild.setAttribute('type', 'button');
         removeChild.onclick = () => {
             family.children = family.children.filter((fc) => fc !== c);
-            refresh();
+            refreshLists();
             refreshFamilyInspector();
         };
         childContainer.append(removeChild);
@@ -298,7 +252,7 @@ function refreshFamilyInspector() {
             return;
 
         family.children.push(selectedPerson);
-        refresh();
+        refreshLists();
         refreshFamilyInspector();
     };
     childrenContainer.append(addChild);
@@ -346,16 +300,26 @@ function select(e: MouseEvent) {
         refreshFamilyInspector();
     }
 
-    refresh();
+    refreshLists();
 }
 
 const openButton = document.getElementById('open')!;
 const saveButton = document.getElementById('save')!;
 const clearButton = document.getElementById('clear')!;
 
-openButton.addEventListener('change', async (e) => await open(e));
-saveButton.onclick = download;
-clearButton.onclick = clear;
+openButton.addEventListener('change', async (e) => {
+    openedFile = (await open(e, openedFile)) || openedFile;
+    refreshLists();
+});
+saveButton.onclick = () => download(openedFile);
+clearButton.onclick = () => {
+    openedFile = clear();
+    selectedPerson = null;
+    selectedFamily = null;
+    refreshLists();
+    refreshPersonInspector();
+    refreshFamilyInspector();
+};
 
 const peopleSection = document.querySelector('#people .list')!;
 const familiesSection = document.querySelector('#families .list')!;
@@ -366,13 +330,13 @@ const addPerson = document.getElementById('addPerson')!;
 addPerson.onclick = () => {
     selectedPerson = AddPerson(openedFile);
     refreshPersonInspector();
-    refresh();
+    refreshLists();
 };
 const addFamily = document.getElementById('addFamily')!;
 addFamily.onclick = () => {
     selectedFamily = AddFamily(openedFile);
     refreshFamilyInspector();
-    refresh();
+    refreshLists();
 };
 
 let openedFile: Slackt = { people: [], families: [] };
@@ -390,6 +354,6 @@ if (fromLS) {
     openedFile = JSON.parse(fromLS) || { people: [], families: [] };
 }
 
-refresh();
+refreshLists();
 refreshPersonInspector();
 refreshFamilyInspector();

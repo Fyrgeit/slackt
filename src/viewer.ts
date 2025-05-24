@@ -1,29 +1,59 @@
-import { Slackt } from './typesnmethods';
+import {
+    Slackt,
+    open,
+    download,
+    clear,
+    FormatFamily,
+    Family,
+} from './typesnmethods.js';
 
-async function open(e: Event) {
-    if (e.target instanceof HTMLInputElement) {
-        const file = e.target.files?.item(0);
-        const text = await file?.text();
-        if (!file || !text) {
-            console.error('äawh');
-            return;
-        }
-        try {
-            openedFile = JSON.parse(text);
-        } catch (error) {
-            console.error('Fel på filen', error);
-        }
+function refresh() {
+    familySelectEl.innerHTML =
+        '<option value="null" disabled selected hidden>Ingen vald</option>';
 
-        localStorage.setItem('openedFile', JSON.stringify(openedFile));
-    }
+    openedFile.families.forEach((f) => {
+        const o = document.createElement('option');
+        o.innerHTML = FormatFamily(openedFile, f);
+        o.value = '' + f.id;
+        familySelectEl.append(o);
+    });
+
+    familySelectEl.value = '' + selectedFamily;
 }
 
-let openButton = document.getElementById('open')!;
+const openButton = document.getElementById('open')!;
+const saveButton = document.getElementById('save')!;
+const clearButton = document.getElementById('clear')!;
 
-openButton.addEventListener('change', async (e) => await open(e));
+openButton.addEventListener('change', async (e) => {
+    openedFile = (await open(e, openedFile)) || openedFile;
+    refresh();
+});
+saveButton.onclick = () => download(openedFile);
+clearButton.onclick = () => {
+    openedFile = clear();
+    refresh();
+};
+
+const familySelectEl = document.getElementById(
+    'selectFamily'
+) as HTMLSelectElement;
+
+familySelectEl.onchange = (e) => {
+    let target = e.target as HTMLSelectElement;
+    localStorage.setItem('selectedFamily', target.value);
+};
+
+const mainArea = document.getElementById('viewer')!;
 
 let openedFile: Slackt = { people: [], families: [] };
 let fromLS = localStorage.getItem('openedFile');
 if (fromLS) {
     openedFile = JSON.parse(fromLS) || { people: [], families: [] };
 }
+
+let selectedFamily: number | null = null;
+let sf = localStorage.getItem('selectedFamily');
+if (sf !== null && sf !== 'null') selectedFamily = parseInt(sf);
+
+refresh();
