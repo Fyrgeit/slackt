@@ -10,7 +10,12 @@ html {
 }
 
 body {
-    max-height: 100svh;
+    height: 100svh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
     display: flex;
     flex-direction: column;
 }
@@ -109,8 +114,7 @@ button:hover {
     gap: 0.2rem;
 }
 
-.vcont,
-#viewer {
+.vcont {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -129,14 +133,34 @@ button:hover {
     flex-direction: column;
     align-items: center;
     gap: 0.2rem;
+    position: relative;
 }
 
 .infoBox>* {
-    margin: 0 1rem;
+    margin: 0 0.75rem;
 }
 
 .small {
     font-weight: bolder;
     font-size: small;
     margin-bottom: -0.25rem;
+}
+
+.popup {
+    visibility: hidden;
+    position: absolute;
+    background-color: #eee;
+    color: black;
+    box-shadow: rgba(0, 0, 0, 0.5) 0 0 1rem;
+    padding: 1rem;
+    cursor: initial;
+    pointer-events: none;
+    transform: none;
+    top: 4rem;
+    left: 5rem;
+    z-index: 1;
+}
+
+.popup.show {
+    visibility: visible;
 }

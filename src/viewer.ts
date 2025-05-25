@@ -98,8 +98,28 @@ function infoBox(person: Person | 'none', role: 'husband' | 'wife' | 'child') {
     const editButton = document.createElement('button');
     editButton.innerHTML = '✏️';
     iconRow.append(editButton);
+
+    let otherFamilies = openedFile.families.filter((f) => {
+        if (
+            !f.children.includes(person.id) &&
+            f.husband !== person.id &&
+            f.wife !== person.id
+        )
+            return false;
+        if (f.id === selectedFamily) return false;
+        return true;
+    });
+
     const familyButton = document.createElement('button');
-    familyButton.innerHTML = '👨‍👩‍👦';
+    familyButton.innerHTML = '👨‍👩‍👦' + otherFamilies.length;
+
+    const popup = document.createElement('div');
+    popup.classList.add('popup');
+    popup.innerHTML = '<p>Se andra familjer</p><p>Lägg till familj</p>';
+
+    iconRow.append(popup);
+    familyButton.onclick = () => popup.classList.toggle('show');
+
     iconRow.append(familyButton);
 
     box.append(iconRow);
