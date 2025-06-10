@@ -104,9 +104,22 @@ button:hover {
     transform: none;
 }
 
-#form {
+form.person {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: auto 1fr;
+    gap: 0.2rem;
+}
+
+form.family {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.2rem;
+}
+
+.children {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
 }
 
 .hcont {
@@ -163,4 +176,23 @@ button:hover {
 
 .popup.show {
     visibility: visible;
+}
+
+.arrows {
+    display: flex;
+    flex-direction: column;
+}
+
+.arrows button:first-child {
+    font-size: 0.7rem;
+    padding: 0.05rem;
+    padding-bottom: 0;
+    border-radius: 0.3rem 0.3rem 0 0;
+}
+
+.arrows button:last-child {
+    font-size: 0.7rem;
+    padding: 0.05rem;
+    padding-top: 0;
+    border-radius: 0 0 0.3rem 0.3rem;
 }

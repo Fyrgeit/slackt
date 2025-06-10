@@ -65,7 +65,7 @@ function refreshPersonInspector() {
     let person = FindPerson(openedFile, selectedPerson);
 
     let formEl = document.createElement('form');
-    formEl.id = 'form';
+    formEl.classList.add('person');
     formEl.onchange = (e) => {
         let target = e.target as HTMLInputElement;
         if (!target) return;
@@ -124,7 +124,7 @@ function refreshFamilyInspector() {
     formEl.addEventListener('submit', (e) => {
         e.preventDefault();
     });
-    formEl.id = 'form';
+    formEl.classList.add('family');
     formEl.onchange = (e) => {
         let target = e.target as HTMLInputElement;
         if (!target) return;
@@ -222,6 +222,7 @@ function refreshFamilyInspector() {
     formEl.append(childrenLabel);
 
     let childrenContainer = document.createElement('div');
+    childrenContainer.classList.add('children');
 
     family.children.forEach((c) => {
         let childContainer = document.createElement('div');
@@ -232,6 +233,16 @@ function refreshFamilyInspector() {
         childEl.innerHTML = FormatName(child, 'full');
         childEl.classList.add('grow');
         childContainer.append(childEl);
+
+        let arrowsEl = document.createElement('div');
+        arrowsEl.classList.add('arrows');
+        let up = document.createElement('button');
+        up.innerHTML = '🔼';
+        let down = document.createElement('button');
+        down.innerHTML = '🔽';
+        arrowsEl.append(up);
+        arrowsEl.append(down);
+        childContainer.append(arrowsEl);
 
         let removeChild = document.createElement('button');
         removeChild.innerHTML = '➖';
