@@ -344,12 +344,20 @@ addPerson.onclick = () => {
     selectedPerson = AddPerson(openedFile);
     refreshPersonInspector();
     refreshLists();
+    let p = peopleSection.querySelector(
+        `[data-id="${selectedPerson}"]`
+    ) as HTMLElement;
+    p?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 };
 const addFamily = document.getElementById('addFamily')!;
 addFamily.onclick = () => {
     selectedFamily = AddFamily(openedFile);
     refreshFamilyInspector();
     refreshLists();
+    let f = familiesSection.querySelector(
+        `[data-id="${selectedFamily}"]`
+    ) as HTMLElement;
+    f?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 };
 
 let openedFile: Slackt = { people: [], families: [] };

@@ -76,13 +76,15 @@ export function FindFamily(s: Slackt, familyId: number) {
 }
 
 export function FormatFamily(s: Slackt, f: Family) {
-    let husband = f.husband ? FormatName(FindPerson(s, f.husband)) : null;
-    let wife = f.wife ? FormatName(FindPerson(s, f.wife)) : null;
+    let husband = f.husband ? FindPerson(s, f.husband) : null;
+    let husbandName = husband ? FormatName(husband) : null;
+    let wife = f.wife ? FindPerson(s, f.wife) : null;
+    let wifeName = wife ? FormatName(wife) : null;
     let children = f.children.map((c) => FormatName(FindPerson(s, c)));
 
-    return `#${f.id} ${husband ?? '?'} + ${wife ?? '?'}${
+    return `#${f.id} ${husbandName ?? '?'} + ${wifeName ?? '?'}${
         children.length > 0 ? ' = ' + children.join(', ') : ''
-    }`;
+    } (${f.nameLastOverride || husband?.nameLast || wife?.nameLast || '?'})`;
 }
 
 export function AddFamily(s: Slackt) {
