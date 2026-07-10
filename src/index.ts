@@ -145,7 +145,7 @@ function refreshFamilyInspector() {
     formEl.append(titleEl);
 
     let husbandLabel = document.createElement('label');
-    husbandLabel.innerHTML = 'Man';
+    husbandLabel.innerHTML = 'Make';
     formEl.append(husbandLabel);
 
     let husbandContainer = document.createElement('div');
@@ -183,7 +183,7 @@ function refreshFamilyInspector() {
     formEl.append(husbandContainer);
 
     let wifeLabel = document.createElement('label');
-    wifeLabel.innerHTML = 'Fru';
+    wifeLabel.innerHTML = 'Maka';
     formEl.append(wifeLabel);
 
     let wifeContainer = document.createElement('div');

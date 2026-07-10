@@ -30,7 +30,7 @@ function refresh() {
 
         if (family.husband !== null) {
             firstRow.append(
-                infoBox(FindPerson(openedFile, family.husband), 'husband')
+                infoBox(FindPerson(openedFile, family.husband), 'husband'),
             );
         } else {
             firstRow.append(infoBox('none', 'husband'));
@@ -38,7 +38,7 @@ function refresh() {
 
         if (family.wife !== null) {
             firstRow.append(
-                infoBox(FindPerson(openedFile, family.wife), 'wife')
+                infoBox(FindPerson(openedFile, family.wife), 'wife'),
             );
         } else {
             firstRow.append(infoBox('none', 'wife'));
@@ -51,7 +51,7 @@ function refresh() {
                 p.classList.add('small');
                 p.innerHTML = 'Barn';
                 return p;
-            })()
+            })(),
         );
 
         const secondRow = document.createElement('div');
@@ -68,8 +68,8 @@ function refresh() {
 
 function infoBox(person: Person | 'none', role: 'husband' | 'wife' | 'child') {
     const roleName = {
-        husband: 'Man',
-        wife: 'Fru',
+        husband: 'Make',
+        wife: 'Maka',
         child: 'Barn',
     }[role];
 
@@ -143,7 +143,7 @@ clearButton.onclick = () => {
 };
 
 const familySelectEl = document.getElementById(
-    'selectFamily'
+    'selectFamily',
 ) as HTMLSelectElement;
 
 familySelectEl.onchange = (e) => {
