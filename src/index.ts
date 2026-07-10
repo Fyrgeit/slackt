@@ -45,7 +45,7 @@ function refreshLists() {
 function refreshPersonInspector() {
     localStorage.setItem(
         'selectedPerson',
-        selectedPerson !== null ? '' + selectedPerson : 'null'
+        selectedPerson !== null ? '' + selectedPerson : 'null',
     );
     personInspector.innerHTML = '';
 
@@ -102,12 +102,15 @@ function refreshPersonInspector() {
     });
 
     personInspector.append(formEl);
+
+    let inpEl = document.getElementById('nameFirst');
+    inpEl?.focus();
 }
 
 function refreshFamilyInspector() {
     localStorage.setItem(
         'selectedFamily',
-        selectedFamily !== null ? '' + selectedFamily : 'null'
+        selectedFamily !== null ? '' + selectedFamily : 'null',
     );
     familyInspector.innerHTML = '';
 
@@ -345,7 +348,7 @@ addPerson.onclick = () => {
     refreshPersonInspector();
     refreshLists();
     let p = peopleSection.querySelector(
-        `[data-id="${selectedPerson}"]`
+        `[data-id="${selectedPerson}"]`,
     ) as HTMLElement;
     p?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 };
@@ -355,7 +358,7 @@ addFamily.onclick = () => {
     refreshFamilyInspector();
     refreshLists();
     let f = familiesSection.querySelector(
-        `[data-id="${selectedFamily}"]`
+        `[data-id="${selectedFamily}"]`,
     ) as HTMLElement;
     f?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 };

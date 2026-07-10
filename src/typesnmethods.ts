@@ -53,7 +53,7 @@ export function GetPerson(s: Slackt, personId: number) {
 
 export function FormatName(
     p: Person,
-    type: 'short' | 'full' | 'extra' = 'short'
+    type: 'short' | 'full' | 'extra' = 'short',
 ) {
     if (type === 'short') return p.nameFirst;
 
@@ -82,9 +82,7 @@ export function FormatFamily(s: Slackt, f: Family) {
     let wifeName = wife ? FormatName(wife) : null;
     let children = f.children.map((c) => FormatName(FindPerson(s, c)));
 
-    return `#${f.id} ${husbandName ?? '?'} + ${wifeName ?? '?'}${
-        children.length > 0 ? ' = ' + children.join(', ') : ''
-    } (${f.nameLastOverride || husband?.nameLast || wife?.nameLast || '?'})`;
+    return `#${f.id} (${f.nameLastOverride || husband?.nameLast || wife?.nameLast || '?'}) ${husbandName ?? '?'} + ${wifeName ?? '?'}${children.length > 0 ? ' = ' + children.join(', ') : ''}`;
 }
 
 export function AddFamily(s: Slackt) {
@@ -106,7 +104,7 @@ export function AddPersonToFamily(
     s: Slackt,
     familyId: number,
     personId: number,
-    role: 'husband' | 'wife' | 'child'
+    role: 'husband' | 'wife' | 'child',
 ) {
     let family = s.families.find((f) => f.id === familyId);
 
