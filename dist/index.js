@@ -1,4 +1,4 @@
-import { FormatName, FindPerson, FormatFamily, AddPerson, FindFamily, AddFamily, download, open, clear, } from './typesnmethods.js';
+import { FormatName, FindPerson, FindPeople, FormatFamily, FindDirectRelatives, AddPerson, FindFamily, AddFamily, download, open, clear, } from './typesnmethods.js';
 function refreshLists() {
     peopleSection.innerHTML = '';
     familiesSection.innerHTML = '';
@@ -257,6 +257,7 @@ function select(e) {
 const openButton = document.getElementById('open');
 const saveButton = document.getElementById('save');
 const clearButton = document.getElementById('clear');
+const analyseButton = document.getElementById('analyse');
 openButton.addEventListener('change', async (e) => {
     openedFile = (await open(e, openedFile)) || openedFile;
     refreshLists();
@@ -270,6 +271,26 @@ clearButton.onclick = () => {
     refreshPersonInspector();
     refreshFamilyInspector();
 };
+analyseButton.onclick = () => {
+    let networks = [];
+    for (let i = 0; i < openedFile.people.length; i++) {
+        if (networks.some((n) => n.has(openedFile.people[i].id)))
+            continue;
+        let p = openedFile.people[i];
+        let network = analysePerson(p, new Set());
+        networks.push(network);
+    }
+    console.log('Networks:', networks.map((set) => FindPeople(openedFile, Array.from(set)).map((p) => FormatName(p, 'full'))));
+};
+function analysePerson(p, counted) {
+    counted.add(p.id);
+    FindDirectRelatives(openedFile, p.id)
+        .filter((p) => !counted.has(p))
+        .forEach((r) => {
+        counted = analysePerson(FindPerson(openedFile, r), counted);
+    });
+    return counted;
+}
 const peopleSection = document.querySelector('#people .list');
 const familiesSection = document.querySelector('#families .list');
 const personInspector = document.getElementById('person');

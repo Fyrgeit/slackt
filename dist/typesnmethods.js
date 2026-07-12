@@ -38,6 +38,13 @@ export function FindFamily(s, familyId) {
         throw new Error(`Family ${familyId} does not exist`);
     return family;
 }
+export function FindDirectRelatives(s, personId) {
+    let families = s.families.filter((f) => f.husband === personId ||
+        f.wife === personId ||
+        f.children.includes(personId));
+    let allFamilyMembers = families.flatMap((f) => [f.husband, f.wife, ...f.children].filter((id) => id !== null));
+    return allFamilyMembers.filter((id) => id !== personId);
+}
 export function FormatFamily(s, f) {
     let husband = f.husband ? FindPerson(s, f.husband) : null;
     let husbandName = husband ? FormatName(husband) : null;

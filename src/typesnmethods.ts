@@ -75,6 +75,21 @@ export function FindFamily(s: Slackt, familyId: number) {
     return family;
 }
 
+export function FindDirectRelatives(s: Slackt, personId: number) {
+    let families = s.families.filter(
+        (f) =>
+            f.husband === personId ||
+            f.wife === personId ||
+            f.children.includes(personId),
+    );
+    let allFamilyMembers = families.flatMap((f) =>
+        [f.husband, f.wife, ...f.children].filter(
+            (id): id is number => id !== null,
+        ),
+    );
+    return allFamilyMembers.filter((id) => id !== personId);
+}
+
 export function FormatFamily(s: Slackt, f: Family) {
     let husband = f.husband ? FindPerson(s, f.husband) : null;
     let husbandName = husband ? FormatName(husband) : null;
