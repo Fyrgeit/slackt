@@ -1,7 +1,97 @@
 import { FormatName, FindPerson, FindPeople, FormatFamily, FindDirectRelatives, AddPerson, FindFamily, AddFamily, download, open, clear, } from './typesnmethods.js';
-function refreshLists() {
+const openButton = document.getElementById('open');
+if (!openButton)
+    throw new Error();
+const saveButton = document.getElementById('save');
+if (!saveButton)
+    throw new Error();
+const clearButton = document.getElementById('clear');
+if (!clearButton)
+    throw new Error();
+const analyseButton = document.getElementById('analyse');
+if (!analyseButton)
+    throw new Error();
+const searchPeople = document.getElementById('searchPeople');
+if (!searchPeople)
+    throw new Error();
+const searchFamilies = document.getElementById('searchFamilies');
+if (!searchFamilies)
+    throw new Error();
+const peopleSection = document.querySelector('#people .list');
+if (!peopleSection)
+    throw new Error();
+const familiesSection = document.querySelector('#families .list');
+if (!familiesSection)
+    throw new Error();
+const personInspector = document.getElementById('person');
+if (!personInspector)
+    throw new Error();
+const familyInspector = document.getElementById('family');
+if (!familyInspector)
+    throw new Error();
+const addPerson = document.getElementById('addPerson');
+if (!addPerson)
+    throw new Error();
+const addFamily = document.getElementById('addFamily');
+if (!addFamily)
+    throw new Error();
+openButton.addEventListener('change', async (e) => {
+    openedFile = (await open(e, openedFile)) || openedFile;
+    refreshPersonList();
+    refreshFamilyList();
+});
+saveButton.onclick = () => download(openedFile);
+clearButton.onclick = () => {
+    openedFile = clear();
+    selectedPerson = null;
+    selectedFamily = null;
+    refreshPersonList();
+    refreshFamilyList();
+    refreshPersonInspector();
+    refreshFamilyInspector();
+};
+analyseButton.onclick = () => {
+    let networks = [];
+    for (let i = 0; i < openedFile.people.length; i++) {
+        if (networks.some((n) => n.has(openedFile.people[i].id)))
+            continue;
+        let p = openedFile.people[i];
+        let network = analysePerson(p, new Set());
+        networks.push(network);
+    }
+    console.log('Networks:', networks.map((set) => FindPeople(openedFile, Array.from(set)).map((p) => FormatName(p, 'full'))));
+};
+function analysePerson(p, counted) {
+    counted.add(p.id);
+    FindDirectRelatives(openedFile, p.id)
+        .filter((p) => !counted.has(p))
+        .forEach((r) => {
+        counted = analysePerson(FindPerson(openedFile, r), counted);
+    });
+    return counted;
+}
+/* searchPeople.addEventListener('input', (e) => {
+    if (e.target) {
+        let t = e.target as HTMLInputElement;
+        refreshPersonList(t.value);
+    }
+}); */
+addPerson.onclick = () => {
+    selectedPerson = AddPerson(openedFile);
+    refreshPersonInspector();
+    refreshPersonList();
+    let p = peopleSection.querySelector(`[data-id="${selectedPerson}"]`);
+    p?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+};
+addFamily.onclick = () => {
+    selectedFamily = AddFamily(openedFile);
+    refreshFamilyInspector();
+    refreshFamilyList();
+    let f = familiesSection.querySelector(`[data-id="${selectedFamily}"]`);
+    f?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+};
+const refreshPersonList = (filter) => {
     peopleSection.innerHTML = '';
-    familiesSection.innerHTML = '';
     localStorage.setItem('openedFile', JSON.stringify(openedFile));
     if (!openedFile)
         return;
@@ -15,6 +105,12 @@ function refreshLists() {
         el.onclick = select;
         peopleSection.append(el);
     });
+};
+const refreshFamilyList = (filter) => {
+    familiesSection.innerHTML = '';
+    localStorage.setItem('openedFile', JSON.stringify(openedFile));
+    if (!openedFile)
+        return;
     openedFile.families.forEach((f) => {
         let el = document.createElement('p');
         el.innerHTML = FormatFamily(openedFile, f);
@@ -25,8 +121,8 @@ function refreshLists() {
         el.onclick = select;
         familiesSection.append(el);
     });
-}
-function refreshPersonInspector() {
+};
+const refreshPersonInspector = () => {
     localStorage.setItem('selectedPerson', selectedPerson !== null ? '' + selectedPerson : 'null');
     personInspector.innerHTML = '';
     if (selectedPerson === null) {
@@ -53,7 +149,7 @@ function refreshPersonInspector() {
             return;
         let k = key;
         person[k] = target.value;
-        refreshLists();
+        refreshPersonList();
     };
     let titleEl = document.createElement('p');
     titleEl.innerHTML = '#' + person.id;
@@ -73,8 +169,8 @@ function refreshPersonInspector() {
     personInspector.append(formEl);
     let inpEl = document.getElementById('nameFirst');
     inpEl?.focus();
-}
-function refreshFamilyInspector() {
+};
+const refreshFamilyInspector = () => {
     localStorage.setItem('selectedFamily', selectedFamily !== null ? '' + selectedFamily : 'null');
     familyInspector.innerHTML = '';
     if (selectedFamily === null) {
@@ -98,7 +194,7 @@ function refreshFamilyInspector() {
             return;
         let k = key;
         family[k] = target.value;
-        refreshLists();
+        refreshFamilyList();
     };
     let titleEl = document.createElement('p');
     titleEl.innerHTML = '#' + family.id;
@@ -121,7 +217,7 @@ function refreshFamilyInspector() {
         addHusband.setAttribute('type', 'button');
         addHusband.onclick = () => {
             family.husband = selectedPerson;
-            refreshLists();
+            refreshFamilyList();
             refreshFamilyInspector();
         };
         husbandContainer.append(addHusband);
@@ -132,7 +228,7 @@ function refreshFamilyInspector() {
         removeHusband.setAttribute('type', 'button');
         removeHusband.onclick = () => {
             family.husband = null;
-            refreshLists();
+            refreshFamilyList();
             refreshFamilyInspector();
         };
         husbandContainer.append(removeHusband);
@@ -155,7 +251,7 @@ function refreshFamilyInspector() {
         addWife.setAttribute('type', 'button');
         addWife.onclick = () => {
             family.wife = selectedPerson;
-            refreshLists();
+            refreshFamilyList();
             refreshFamilyInspector();
         };
         wifeContainer.append(addWife);
@@ -166,7 +262,7 @@ function refreshFamilyInspector() {
         removeWife.setAttribute('type', 'button');
         removeWife.onclick = () => {
             family.wife = null;
-            refreshLists();
+            refreshFamilyList();
             refreshFamilyInspector();
         };
         wifeContainer.append(removeWife);
@@ -199,7 +295,7 @@ function refreshFamilyInspector() {
         removeChild.setAttribute('type', 'button');
         removeChild.onclick = () => {
             family.children = family.children.filter((fc) => fc !== c);
-            refreshLists();
+            refreshFamilyList();
             refreshFamilyInspector();
         };
         childContainer.append(removeChild);
@@ -212,7 +308,7 @@ function refreshFamilyInspector() {
         if (selectedPerson == null || family.children.includes(selectedPerson))
             return;
         family.children.push(selectedPerson);
-        refreshLists();
+        refreshFamilyList();
         refreshFamilyInspector();
     };
     childrenContainer.append(addChild);
@@ -229,7 +325,7 @@ function refreshFamilyInspector() {
         formEl.append(inputEl);
     });
     familyInspector.append(formEl);
-}
+};
 function select(e) {
     let target = e.target;
     let id = target.attributes.getNamedItem('data-id')?.value;
@@ -252,65 +348,9 @@ function select(e) {
         selectedFamily = parseInt(id);
         refreshFamilyInspector();
     }
-    refreshLists();
+    refreshPersonList();
+    refreshFamilyList();
 }
-const openButton = document.getElementById('open');
-const saveButton = document.getElementById('save');
-const clearButton = document.getElementById('clear');
-const analyseButton = document.getElementById('analyse');
-openButton.addEventListener('change', async (e) => {
-    openedFile = (await open(e, openedFile)) || openedFile;
-    refreshLists();
-});
-saveButton.onclick = () => download(openedFile);
-clearButton.onclick = () => {
-    openedFile = clear();
-    selectedPerson = null;
-    selectedFamily = null;
-    refreshLists();
-    refreshPersonInspector();
-    refreshFamilyInspector();
-};
-analyseButton.onclick = () => {
-    let networks = [];
-    for (let i = 0; i < openedFile.people.length; i++) {
-        if (networks.some((n) => n.has(openedFile.people[i].id)))
-            continue;
-        let p = openedFile.people[i];
-        let network = analysePerson(p, new Set());
-        networks.push(network);
-    }
-    console.log('Networks:', networks.map((set) => FindPeople(openedFile, Array.from(set)).map((p) => FormatName(p, 'full'))));
-};
-function analysePerson(p, counted) {
-    counted.add(p.id);
-    FindDirectRelatives(openedFile, p.id)
-        .filter((p) => !counted.has(p))
-        .forEach((r) => {
-        counted = analysePerson(FindPerson(openedFile, r), counted);
-    });
-    return counted;
-}
-const peopleSection = document.querySelector('#people .list');
-const familiesSection = document.querySelector('#families .list');
-const personInspector = document.getElementById('person');
-const familyInspector = document.getElementById('family');
-const addPerson = document.getElementById('addPerson');
-addPerson.onclick = () => {
-    selectedPerson = AddPerson(openedFile);
-    refreshPersonInspector();
-    refreshLists();
-    let p = peopleSection.querySelector(`[data-id="${selectedPerson}"]`);
-    p?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-};
-const addFamily = document.getElementById('addFamily');
-addFamily.onclick = () => {
-    selectedFamily = AddFamily(openedFile);
-    refreshFamilyInspector();
-    refreshLists();
-    let f = familiesSection.querySelector(`[data-id="${selectedFamily}"]`);
-    f?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-};
 let openedFile = { people: [], families: [] };
 let selectedPerson = null;
 let sp = localStorage.getItem('selectedPerson');
@@ -324,7 +364,8 @@ let fromLS = localStorage.getItem('openedFile');
 if (fromLS) {
     openedFile = JSON.parse(fromLS) || { people: [], families: [] };
 }
-refreshLists();
+refreshPersonList();
+refreshFamilyList();
 refreshPersonInspector();
 refreshFamilyInspector();
 //# sourceMappingURL=index.js.map

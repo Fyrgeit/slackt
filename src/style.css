@@ -56,9 +56,8 @@ main>* {
     flex-direction: column;
 }
 
-.list {
+#editor input {
     flex-grow: 1;
-    overflow-y: scroll;
 }
 
 .list p {
