@@ -60,6 +60,11 @@ main>* {
     flex-grow: 1;
 }
 
+.list {
+    flex-grow: 1;
+    overflow-y: scroll;
+}
+
 .list p {
     cursor: pointer;
     white-space: nowrap;

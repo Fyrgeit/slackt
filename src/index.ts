@@ -86,12 +86,13 @@ function analysePerson(p: Person, counted: Set<number>) {
     return counted;
 }
 
-/* searchPeople.addEventListener('input', (e) => {
-    if (e.target) {
-        let t = e.target as HTMLInputElement;
-        refreshPersonList(t.value);
-    }
-}); */
+searchPeople.addEventListener('input', () => {
+    refreshPersonList();
+});
+
+searchFamilies.addEventListener('input', () => {
+    refreshFamilyList();
+});
 
 addPerson.onclick = () => {
     selectedPerson = AddPerson(openedFile);
@@ -112,14 +113,22 @@ addFamily.onclick = () => {
     f?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 };
 
-const refreshPersonList = (filter?: string) => {
+const refreshPersonList = () => {
     peopleSection.innerHTML = '';
 
     localStorage.setItem('openedFile', JSON.stringify(openedFile));
 
     if (!openedFile) return;
 
-    openedFile.people.forEach((p) => {
+    let filter = (searchPeople as HTMLInputElement).value;
+    let people = openedFile.people;
+    if (filter) {
+        people = people.filter((p) =>
+            FormatName(p, 'full').toLowerCase().includes(filter.toLowerCase()),
+        );
+    }
+
+    people.forEach((p) => {
         let el = document.createElement('p');
         el.innerHTML = FormatName(p, 'extra') ?? '?';
         if (p.id === selectedPerson) el.classList.add('embolden');
@@ -128,16 +137,29 @@ const refreshPersonList = (filter?: string) => {
         el.onclick = select;
         peopleSection.append(el);
     });
+
+    let p = peopleSection.querySelector(`[data-id="${selectedPerson}"]`);
+    p?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 };
 
-const refreshFamilyList = (filter?: string) => {
+const refreshFamilyList = () => {
     familiesSection.innerHTML = '';
 
     localStorage.setItem('openedFile', JSON.stringify(openedFile));
 
     if (!openedFile) return;
 
-    openedFile.families.forEach((f) => {
+    let filter = (searchFamilies as HTMLInputElement).value;
+    let families = openedFile.families;
+    if (filter) {
+        families = families.filter((f) =>
+            FormatFamily(openedFile, f)
+                .toLowerCase()
+                .includes(filter.toLowerCase()),
+        );
+    }
+
+    families.forEach((f) => {
         let el = document.createElement('p');
         el.innerHTML = FormatFamily(openedFile!, f);
         if (f.id === selectedFamily) el.classList.add('embolden');
@@ -146,6 +168,9 @@ const refreshFamilyList = (filter?: string) => {
         el.onclick = select;
         familiesSection.append(el);
     });
+
+    let p = familiesSection.querySelector(`[data-id="${selectedFamily}"]`);
+    p?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 };
 
 const refreshPersonInspector = () => {
