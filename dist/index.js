@@ -17,6 +17,12 @@ if (!searchPeople)
 const searchFamilies = document.getElementById('searchFamilies');
 if (!searchFamilies)
     throw new Error();
+const clearSearchPeople = document.getElementById('clearSearchPeople');
+if (!clearSearchPeople)
+    throw new Error();
+const clearSearchFamilies = document.getElementById('clearSearchFamilies');
+if (!clearSearchFamilies)
+    throw new Error();
 const peopleSection = document.querySelector('#people .list');
 if (!peopleSection)
     throw new Error();
@@ -70,12 +76,20 @@ function analysePerson(p, counted) {
     });
     return counted;
 }
-searchPeople.addEventListener('input', () => {
+searchPeople.oninput = () => {
     refreshPersonList();
-});
-searchFamilies.addEventListener('input', () => {
+};
+searchFamilies.oninput = () => {
     refreshFamilyList();
-});
+};
+clearSearchPeople.onclick = () => {
+    searchPeople.value = '';
+    refreshPersonList();
+};
+clearSearchFamilies.onclick = () => {
+    searchFamilies.value = '';
+    refreshFamilyList();
+};
 addPerson.onclick = () => {
     selectedPerson = AddPerson(openedFile);
     refreshPersonInspector();
