@@ -21,8 +21,6 @@ const saveButton = document.getElementById('save');
 if (!saveButton) throw new Error();
 const clearButton = document.getElementById('clear');
 if (!clearButton) throw new Error();
-const analyseButton = document.getElementById('analyse');
-if (!analyseButton) throw new Error();
 const searchPeople = document.getElementById('searchPeople');
 if (!searchPeople) throw new Error();
 const searchFamilies = document.getElementById('searchFamilies');
@@ -59,36 +57,6 @@ clearButton.onclick = () => {
     refreshPersonInspector();
     refreshFamilyInspector();
 };
-analyseButton.onclick = () => {
-    let networks: Set<number>[] = [];
-    for (let i = 0; i < openedFile.people.length; i++) {
-        if (networks.some((n) => n.has(openedFile.people[i].id))) continue;
-
-        let p = openedFile.people[i];
-        let network = analysePerson(p, new Set<number>());
-        networks.push(network);
-    }
-
-    console.log(
-        'Networks:',
-        networks.map((set) =>
-            FindPeople(openedFile, Array.from(set)).map((p) =>
-                FormatName(p, 'full'),
-            ),
-        ),
-    );
-};
-
-function analysePerson(p: Person, counted: Set<number>) {
-    counted.add(p.id);
-    FindDirectRelatives(openedFile, p.id)
-        .filter((p) => !counted.has(p))
-        .forEach((r) => {
-            counted = analysePerson(FindPerson(openedFile, r), counted);
-        });
-
-    return counted;
-}
 
 searchPeople.oninput = () => {
     refreshPersonList();
