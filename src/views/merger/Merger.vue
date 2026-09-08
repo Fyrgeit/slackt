@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ComputedRef, ref, watch } from 'vue';
-import { Tree, PersonId, Person, FamilyId, mapAppend, open, personIdFromString } from '../../typesnmethods.ts';
+import { Tree, PersonId, Person, FamilyId, Family, mapAppend, open, personIdFromString } from '../../typesnmethods.ts';
 import PersonButton from "./PersonButton.vue";
 
 const workingTree = defineModel<Tree>('workingTree', {
@@ -58,7 +58,74 @@ const sections: [ComputedRef<Person[]>, string][] = [
 
 
 
-/** Make a map from first names to the people with that name */
+/** Get a map from a source person's id to the ids of target people that could be the same person. */
+function identifyCandidates(source: Tree, target: Tree): Map<PersonId, [boolean, PersonId[], number]> {
+    let nameToTargetPeople = groupFirstNames(target.people)
+    let candidateMap: Map<PersonId, [boolean, PersonId[], number]> = new Map()
+
+    for (const sourcePerson of source.people) {
+        let candidates = (
+            nameToTargetPeople.get(sourcePerson.nameFirst) ?? []
+        )
+            .filter((id) => possiblySamePerson(source, target, target.getPerson(id), sourcePerson))
+            .map((id) => target.getPerson(id))
+
+        // Index of the candidate to preselect, if any.
+        let preSelectedIndex: number = -1
+        // If there is a perfect candidate, map only to that one.
+        let perfectCandidateIndex = candidates.findIndex((candidate) => exactlySamePerson(sourcePerson, candidate))
+        if (perfectCandidateIndex !== -1) {
+            // Put the perfect candidate first
+            let [perfectCandidate] = candidates.splice(perfectCandidateIndex);
+            candidates = [perfectCandidate].concat(candidates)
+            preSelectedIndex = 0
+        } else if (candidates.length === 1) {
+            preSelectedIndex = 0
+        } else {
+            // Sort by how specific the candidates are (descending)
+            candidates.sort((p1, p2) => p2.numFilledFields() - p1.numFilledFields())
+        }
+
+        candidateMap.set(sourcePerson.id, [true, candidates.map(p => p.id), preSelectedIndex])
+    }
+    return candidateMap
+}
+
+function toggleSelected(cell: {sourceId: PersonId, id: PersonId, side: 'source' | 'target'}) {
+    let [selected, targetIds, selectedTarget] = mergeMapping.value.get(cell.sourceId)!
+
+    if (cell.side === "source") {
+        selected = !selected
+    } else if (cell.side === "target") {
+        if (targetIds[selectedTarget] === cell.id) {
+            selectedTarget = -1
+        } else {
+            selectedTarget = targetIds.findIndex(id => id === cell.id)
+        }
+    }
+
+    mergeMapping.value.set(cell.sourceId, [selected, targetIds, selectedTarget])
+}
+
+function updateInfo(cell: {sourceId: PersonId, id: PersonId, side: 'source' | 'target'}) {
+    const tree = (cell.side === 'source' ? sourceTree : workingTree).value as Tree | null
+    if (tree === null)
+        return
+
+    const person = tree.getPerson(cell.id)
+    const [siblings, halfSiblings] = tree.getSiblings(cell.id);
+
+    firstNameInfo.value = person.nameFirst
+    lastNamesInfo.value = (person.nameLast || "?") + (person.nameLastMaiden === "" ? "" : ` (f. ${person.nameLastMaiden})`)
+    dateBirthInfo.value = person.dateBirth
+    dateDeathInfo.value = person.dateDeath
+    siblingsInfo.value = siblings.map(p => p.formatName("short")).join(", ")
+    halfSiblingsInfo.value = halfSiblings.map(p => p.formatName("short")).join(", ")
+    familyInfo.value = tree.getFamiliesFromParent(cell.id).map(f => f.formatFamily(tree)).join("; ")
+}
+
+
+/** Make a map from first names to the people with that name. */
 function groupFirstNames(people: Person[]): Map<string, PersonId[]> {
     let ids: Map<string, PersonId[]> = new Map()
     for (const person of people) {
@@ -139,77 +206,204 @@ function exactlySamePerson(sourcePerson: Person, targetPerson: Person): boolean 
     )
 }
 
-/** Get a map from a source person's id to the ids of target people that could be the same person. */
-function identifyCandidates(source: Tree, target: Tree): Map<PersonId, [boolean, PersonId[], number]> {
-    let nameToTargetPeople = groupFirstNames(target.people)
-    let candidateMap: Map<PersonId, [boolean, PersonId[], number]> = new Map()
 
-    for (const sourcePerson of source.people) {
-        let candidates = (
-            nameToTargetPeople.get(sourcePerson.nameFirst) ?? []
+/** Get a map from people to families they are a part of. */
+function groupFamilies(families: Family[]): [Map<PersonId, FamilyId>, Map<PersonId, FamilyId[]>, Map<PersonId, FamilyId[]>] {
+    let childToFamily: Map<PersonId, FamilyId> = new Map()
+    let husbandToFamily: Map<PersonId, FamilyId[]> = new Map()
+    let wifeToFamily: Map<PersonId, FamilyId[]> = new Map()
+    for (const family of families) {
+        for (const childId of family.children) {
+            childToFamily.set(childId, family.id)
+        }
+        if (family.husband !== null) {
+            mapAppend(husbandToFamily, family.husband, family.id)
+        }
+        if (family.wife !== null) {
+            mapAppend(wifeToFamily, family.wife, family.id)
+        }
+    }
+
+    return [childToFamily, husbandToFamily, wifeToFamily]
+}
+
+/** Return false for families that are definitely different, and true otherwise. */
+function possiblySameFamily(sourceFamily: Family, targetFamily: Family): boolean {
+    if (
+        targetFamily.husband !== null
+        && sourceFamily.husband !== null
+        && targetFamily.husband !== sourceFamily.husband
+    )
+        return false
+    if (
+        targetFamily.wife !== null
+        && sourceFamily.wife !== null
+        && targetFamily.wife !== sourceFamily.wife
+    )
+        return false
+    if (
+        targetFamily.nameLastOverride !== ""
+        && sourceFamily.nameLastOverride !== ""
+        && targetFamily.nameLastOverride !== sourceFamily.nameLastOverride
+    )
+        return false
+    if (
+        targetFamily.dateStart !== ""
+        && sourceFamily.dateStart !== ""
+        && targetFamily.dateStart !== sourceFamily.dateStart
+    )
+        return false
+
+    // Didn't fail any tests, they could be the same
+    return true
+}
+
+/** Pair up source families and target families. */
+function identifyFamilies(sourceFamilies: Family[], targetFamilies: Family[]): [Map<FamilyId, FamilyId>, Map<FamilyId, FamilyId[]>] {
+    let targetIds: Map<FamilyId, FamilyId> = new Map()
+    let severalTargetIds: Map<FamilyId, FamilyId[]> = new Map()
+
+    let [childToFamily, husbandToFamily, wifeToFamily] = groupFamilies(targetFamilies)
+    for (const sourceFamily of sourceFamilies) {
+        // The initial candidates are the target families that overlap
+        // with the source family, either in children, husband, or wife.
+        let candidates = sourceFamily.children.flatMap(id => childToFamily.get(id) ?? [])
+        if (sourceFamily.husband !== null)
+            candidates = candidates.concat(husbandToFamily.get(sourceFamily.husband) ?? [])
+        if (sourceFamily.wife !== null)
+            candidates = candidates.concat(wifeToFamily.get(sourceFamily.wife) ?? [])
+
+        // Deduplicate and filter
+        let possibleTargets = (
+            [...new Set(candidates)]
+                .map(id => targetFamilies.find(f => f.id === id)!)
+                .filter(candidate => possiblySameFamily(sourceFamily, candidate))
         )
-            .filter((id) => possiblySamePerson(source, target, target.getPerson(id), sourcePerson))
-            .map((id) => target.getPerson(id))
 
-        // Index of the candidate to preselect, if any.
-        let preSelectedIndex: number = -1
-        // If there is a perfect candidate, map only to that one.
-        let perfectCandidateIndex = candidates.findIndex((candidate) => exactlySamePerson(sourcePerson, candidate))
-        if (perfectCandidateIndex !== -1) {
-            // Put the perfect candidate first
-            let [perfectCandidate] = candidates.splice(perfectCandidateIndex);
-            candidates = [perfectCandidate].concat(candidates)
-            preSelectedIndex = 0
-        } else if (candidates.length === 1) {
-            preSelectedIndex = 0
+        if (possibleTargets.length === 0) {
+            continue
+        } else if (possibleTargets.length === 1) {
+            targetIds.set(sourceFamily.id, possibleTargets[0].id)
         } else {
-            // Sort by how specific the candidates are (descending)
-            candidates.sort((p1, p2) => p2.numFilledFields() - p1.numFilledFields())
-        }
-
-        candidateMap.set(sourcePerson.id, [true, candidates.map(p => p.id), preSelectedIndex])
-    }
-    return candidateMap
-}
-
-function toggleSelected(cell: {sourceId: PersonId, id: PersonId, side: 'source' | 'target'}) {
-    let [selected, targetIds, selectedTarget] = mergeMapping.value.get(cell.sourceId)!
-
-    if (cell.side === "source") {
-        selected = !selected
-    } else if (cell.side === "target") {
-        if (targetIds[selectedTarget] === cell.id) {
-            selectedTarget = -1
-        } else {
-            selectedTarget = targetIds.findIndex(id => id === cell.id)
+            severalTargetIds.set(sourceFamily.id, possibleTargets.map(f => f.id))
         }
     }
 
-    mergeMapping.value.set(cell.sourceId, [selected, targetIds, selectedTarget])
+    return [targetIds, severalTargetIds]
 }
 
-function updateInfo(cell: {sourceId: PersonId, id: PersonId, side: 'source' | 'target'}) {
-    const tree = (cell.side === 'source' ? sourceTree : workingTree).value as Tree | null
-    if (tree === null)
+
+function getMergedTree(): Tree | undefined {
+    if (sourceTree.value === null)
         return
 
-    const person = tree.getPerson(cell.id)
-    const [siblings, halfSiblings] = tree.getSiblings(cell.id);
+    // Start with all the people from the working tree
+    let newPeople: Person[] = workingTree.value.people.map(p => p.copy())
+    let newIds: Map<PersonId, PersonId | null> = new Map()
+    for (const sourcePerson of sourceTree.value.people) {
+        const [selected, targetIds, selectedTarget] = mergeMapping.value.get(sourcePerson.id)!
+        if (!selected){
+            // This source person was deselected, so it should be removed from the source file
+            newIds.set(sourcePerson.id, null)
+            continue
+        }
 
-    firstNameInfo.value = person.nameFirst
-    lastNamesInfo.value = (person.nameLast || "?") + (person.nameLastMaiden === "" ? "" : ` (f. ${person.nameLastMaiden})`)
-    dateBirthInfo.value = person.dateBirth
-    dateDeathInfo.value = person.dateDeath
-    siblingsInfo.value = siblings.map(p => p.formatName("short")).join(", ")
-    halfSiblingsInfo.value = halfSiblings.map(p => p.formatName("short")).join(", ")
-    familyInfo.value = tree.getFamiliesFromParent(cell.id).map(f => f.formatFamily(tree)).join("; ")
+        if (selectedTarget === -1) {
+            // No target, this is a new person
+            if (newPeople.find(p => p.id === sourcePerson.id) === undefined)
+                newPeople.push(sourcePerson.copy())
+            // Record that the id was unchanged
+            newIds.set(sourcePerson.id, sourcePerson.id)
+        } else {
+            const targetId = targetIds[selectedTarget];
+            // Target selected, add their merged person
+            const targetPersonIndex = newPeople.findIndex(p => p.id === targetId)
+            const targetPerson = newPeople[targetPersonIndex]
+            newPeople[targetPersonIndex] = targetPerson.mergedWith(sourcePerson)
+            // Record that the id has been updated
+            newIds.set(sourcePerson.id, targetPerson.id)
+        }
+    }
+
+    // Update the ids in the source families to align with the targets
+    let sourceFamilies = sourceTree.value.families.map(f => f.copy())
+    for (const sourceFamily of sourceFamilies) {
+        sourceFamily.children = sourceFamily.children.map(id => newIds.get(id)).filter(id => id !== undefined && id !== null)
+        if (sourceFamily.husband !== null)
+            sourceFamily.husband = newIds.get(sourceFamily.husband)!
+        if (sourceFamily.wife !== null)
+            sourceFamily.wife = newIds.get(sourceFamily.wife)!
+    }
+    // Remove any empty families from merging
+    sourceFamilies = sourceFamilies.filter(f => f.children.length > 0 || f.husband !== null || f.wife !== null)
+
+    let [targetFamilies, ambiguousTargetFamilies] = identifyFamilies(sourceFamilies, workingTree.value.families)
+    // targetFamilies must be a bijection, identify in reverse as well
+    let [_, ambiguousSourceFamilies] = identifyFamilies(workingTree.value.families, sourceFamilies)
+
+    // Check if the families could not be paired up unambiguously
+    if (ambiguousTargetFamilies.size > 0 || ambiguousSourceFamilies.size > 0) {
+        let reverse = ambiguousSourceFamilies.size > ambiguousTargetFamilies.size
+        let [source, target] = reverse ? [workingTree.value, sourceTree.value] : [sourceTree.value, workingTree.value]
+        let [sourceName, targetName] = reverse ? ["öppna", "nya"] : ["nya", "öppna"]
+        let mapping = reverse ? ambiguousSourceFamilies : ambiguousTargetFamilies
+
+        alert(
+            `Kunde inte importera: Minst en familj i den ${sourceName} filen har flera familjer i den `
+            + `${targetName} filen som den passar ihop med. Se konsolen (Ctrl+Skift+i) för mer exakt beskrivning.`
+        )
+        logFamilyUncertaintyTable(mapping, target as Tree, source as Tree, targetName, sourceName)
+        return
+    }
+
+    // Start with all families from the working tree
+    let newFamilies: Family[] = workingTree.value.families.map(f => f.copy())
+    for (const sourceFamily of sourceFamilies) {
+        if (targetFamilies.has(sourceFamily.id)) {
+            // Existing family, update
+            const targetFamilyId = targetFamilies.get(sourceFamily.id)!
+            const targetFamilyIndex = newFamilies.findIndex(f => f.id === targetFamilyId)
+            newFamilies[targetFamilyIndex] = newFamilies[targetFamilyIndex].mergedWith(sourceFamily)
+        } else {
+            // New family, add it
+            newFamilies.push(sourceFamily.copy())
+        }
+    }
+
+    return new Tree(newPeople, newFamilies)
+}
+
+function logFamilyUncertaintyTable(mapping: Map<FamilyId, FamilyId[]>, source: Tree, target: Tree, sourceName: string, targetName: string) {
+    let column1label = `Familj i den ${targetName} filen`
+    let column2label = `Möjliga familjer i den ${sourceName} filen`
+
+    let tableData = []
+    for (const [id, candidateIds] of mapping) {
+        tableData.push({
+            [column1label]: `${target.getFamily(id).formatFamily(target)}`,
+            [column2label]: (
+                candidateIds
+                    .map((id) => `${source.getFamily(id).formatFamily(source)}`)
+                    .join("; ")
+            )
+        })
+    }
+    console.table(tableData)
+}
+
+function finishMerge() {
+    let newTree = getMergedTree()
+    if (newTree !== undefined) {
+        workingTree.value = newTree
+        alert("Importering lyckades, gå till Redigerare för att se den nya filen.")
+    }
 }
 
 </script>
 
 <template>
     <div id="root">
-        <button class="textButton" @click="mergeFileInput?.click()">Importera</button>
+        <button class="textButton" @click="mergeFileInput?.click()">Importera från</button>
         <input
             @change="openMergeFile"
             ref="mergeFileInput"
@@ -217,6 +411,8 @@ function updateInfo(cell: {sourceId: PersonId, id: PersonId, side: 'source' | 't
             accept=".json"
             hidden
         />
+        <p style="display: inline; margin-right: 0.5rem;" :hidden="(mergeFileInput?.files?.length ?? 0) === 0">{{ mergeFileInput?.files?.[0]?.name }}</p>
+        <button class="textButton" :disabled="sourceTree === null" @click="finishMerge">Slutför</button>
         <div id="tableContainer">
             <table id="mergerTable">
                 <thead>

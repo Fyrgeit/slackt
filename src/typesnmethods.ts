@@ -61,7 +61,7 @@ export class Person {
         return '';
     }
 
-    /** Return a copy with fields updated from `source`. */
+    /** Return a copy with fields updated from `source`. The copy has the same id as the original. */
     mergedWith(source: Person){
         let newPerson = this.copy()
         // Take names from other unless they're empty
@@ -87,6 +87,7 @@ export class Person {
         return Object.assign(new Person(obj.id), obj);
     }
 
+    /** Return a copy of this person. The copy has the same id as the original. */
     copy(): Person {
         return Object.assign(new Person(this.id), this)
     }
@@ -148,8 +149,8 @@ export class Family {
             newFamily.husband = source.husband
         if (source.wife !== null)
             newFamily.wife = source.wife
-        // Deduplicate the combined children
-        newFamily.children = [...new Set(this.children.concat(source.children))]
+        // Deduplicate the combined children (keeping the order of the source children)
+        newFamily.children = [...new Set(source.children.concat(this.children))]
         if (source.nameLastOverride !== "")
             newFamily.nameLastOverride = source.nameLastOverride
         // Take whichever date is more specific, assuming YYYY[-MM[-DD]] format
