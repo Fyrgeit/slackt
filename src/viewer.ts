@@ -1,4 +1,4 @@
-import { Tree, open, download, clear, Person } from './typesnmethods.js';
+import { FamilyId, Tree, open, download, Person } from './typesnmethods.js';
 
 function refresh() {
     familySelectEl.innerHTML =
@@ -127,13 +127,12 @@ const saveButton = document.getElementById('save')!;
 const clearButton = document.getElementById('clear')!;
 
 openButton.addEventListener('change', async (e) => {
-    openedFile = (await open(e, openedFile)) || openedFile;
+    openedFile = (await open(e)) || openedFile;
     refresh();
 });
 saveButton.onclick = () => download(openedFile);
 clearButton.onclick = () => {
-    openedFile = clear();
-    refresh();
+    console.error("Clearing is not supported here")
 };
 
 const familySelectEl = document.getElementById(
@@ -142,7 +141,7 @@ const familySelectEl = document.getElementById(
 
 familySelectEl.onchange = (e) => {
     let target = e.target as HTMLSelectElement;
-    selectedFamily = parseInt(target.value);
+    selectedFamily = target.value as FamilyId;
     localStorage.setItem('selectedFamily', target.value);
     refresh();
 };
@@ -155,8 +154,9 @@ if (fromLS) {
     openedFile = Tree.fromString(fromLS);
 }
 
-let selectedFamily: number | null = null;
+let selectedFamily: FamilyId | null = null;
 let sf = localStorage.getItem('selectedFamily');
-if (sf !== null && sf !== 'null') selectedFamily = parseInt(sf);
+if (sf !== null && sf !== 'null') 
+    selectedFamily = sf as FamilyId;
 
 refresh();

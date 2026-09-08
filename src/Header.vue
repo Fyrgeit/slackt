@@ -17,17 +17,9 @@ async function openFile(e: Event) {
     workingTree.value = await open(e);
 }
 
-let timeStampLastClickedClear = 0;
 function clear() {
-    // Click twice within 2 seconds to clear
-    if (Date.now() - timeStampLastClickedClear < 2000) {
-        workingTree.value = new Tree();
-    } else {
-        alert(
-            'Vill du verkligen ta bort alla personer och familjer? Klicka igen inom 2 sekunder i så fall.',
-        );
-    }
-    timeStampLastClickedClear = Date.now();
+    if (window.confirm("Vill du verkligen ta bort alla personer och familjer?"))
+        workingTree.value = new Tree()
 }
 
 async function upload() {
@@ -51,6 +43,7 @@ async function upload() {
         <h2><RouterLink to="/viewer">Utforskare</RouterLink></h2>
         <h2><RouterLink to="/tools">Verktyg</RouterLink></h2>
         <h2><RouterLink to="/account">Konto</RouterLink></h2>
+        <h2><RouterLink to="/merger">Importerare</RouterLink></h2>
         <p>Tillbaka till <a href="https://fyrgeit.se">Fyrgeit.se</a></p>
         <p v-if="session">Inloggad som: {{ session.user.email }}</p>
         <p v-else>Inte inloggad</p>
